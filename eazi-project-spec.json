@@ -1,0 +1,902 @@
+{
+  "$schema": "eazi-project-spec",
+  "version": "1.0.0",
+  "project": {
+    "name": "EaZi",
+    "description": "On-demand digital marketplace connecting verified Service Providers with Clients seeking reliable local services in South Africa",
+    "type": "mobile-app",
+    "platforms": ["ios", "android"],
+    "currency": "ZAR",
+    "region": "South Africa"
+  },
+
+  "stack": {
+    "framework": "react-native",
+    "runtime": "expo-managed-workflow",
+    "expo_sdk": "52+",
+    "language": "typescript",
+    "strict_mode": true,
+    "backend": "supabase",
+    "database": "postgresql",
+    "auth": "supabase-auth",
+    "realtime": "supabase-realtime",
+    "storage": "supabase-storage",
+    "serverless": "supabase-edge-functions",
+    "payment_gateway": "yoco",
+    "maps": "google-maps",
+    "push_notifications": "expo-notifications",
+    "styling": "nativewind-v4",
+    "state_management": "zustand",
+    "forms": "react-hook-form",
+    "validation": "zod",
+    "navigation": "react-navigation-v7",
+    "icons": "lucide-react-native",
+    "dates": "date-fns",
+    "images": "expo-image",
+    "monitoring": "sentry",
+    "lists": "@shopify/flash-list"
+  },
+
+  "dependencies": {
+    "core": [
+      "@supabase/supabase-js",
+      "@react-native-async-storage/async-storage",
+      "react-native-url-polyfill"
+    ],
+    "navigation": [
+      "@react-navigation/native",
+      "@react-navigation/native-stack",
+      "@react-navigation/bottom-tabs",
+      "react-native-screens",
+      "react-native-safe-area-context"
+    ],
+    "state_forms": [
+      "zustand",
+      "react-hook-form",
+      "@hookform/resolvers",
+      "zod"
+    ],
+    "ui": [
+      "nativewind",
+      "tailwindcss",
+      "react-native-reanimated",
+      "expo-image",
+      "lucide-react-native",
+      "react-native-svg",
+      "@shopify/flash-list"
+    ],
+    "maps_location": [
+      "react-native-maps",
+      "expo-location"
+    ],
+    "media": [
+      "expo-image-picker",
+      "expo-document-picker",
+      "expo-file-system"
+    ],
+    "notifications": [
+      "expo-notifications",
+      "expo-device",
+      "expo-constants"
+    ],
+    "utilities": [
+      "date-fns",
+      "@sentry/react-native",
+      "@react-native-community/datetimepicker"
+    ]
+  },
+
+  "environment_variables": {
+    "EXPO_PUBLIC_SUPABASE_URL": { "description": "Supabase project URL", "required": true, "example": "https://xxxxx.supabase.co" },
+    "EXPO_PUBLIC_SUPABASE_ANON_KEY": { "description": "Supabase anonymous/public key", "required": true },
+    "EXPO_PUBLIC_GOOGLE_MAPS_API_KEY": { "description": "Google Maps API key (Maps SDK + Places API)", "required": true },
+    "EXPO_PUBLIC_YOCO_PUBLIC_KEY": { "description": "Yoco public key (pk_test_ for dev, pk_live_ for prod)", "required": true },
+    "EXPO_PUBLIC_SENTRY_DSN": { "description": "Sentry DSN for error tracking", "required": false }
+  },
+
+  "edge_function_secrets": {
+    "YOCO_SECRET_KEY": { "description": "Yoco secret key for server-side payment creation" },
+    "YOCO_WEBHOOK_SECRET": { "description": "Yoco webhook signing secret for signature verification" },
+    "EXPO_PUSH_ACCESS_TOKEN": { "description": "Expo push notification access token" },
+    "SUPABASE_SERVICE_ROLE_KEY": { "description": "Auto-available in Edge Functions for bypassing RLS" }
+  },
+
+  "roles": {
+    "client": {
+      "description": "End-user who discovers, books, pays for, and reviews services",
+      "default_status": "active",
+      "capabilities": [
+        "browse_services", "search_filter_services", "view_service_details",
+        "view_provider_profiles", "create_bookings", "quick_book_5km",
+        "pay_for_bookings", "cancel_bookings", "track_booking_status",
+        "leave_reviews", "tip_providers", "chat_with_providers",
+        "manage_wallet", "top_up_wallet", "manage_saved_cards",
+        "view_transactions", "manage_profile", "manage_notifications",
+        "submit_support_queries", "report_emergencies"
+      ]
+    },
+    "provider": {
+      "description": "Verified service provider who lists services, manages bookings, and earns income",
+      "default_status": "pending_approval",
+      "requires_verification": true,
+      "max_services": 5,
+      "capabilities": [
+        "create_services", "edit_services", "delete_services",
+        "manage_gallery", "set_pricing_hours", "toggle_availability",
+        "view_incoming_bookings", "accept_bookings", "decline_bookings",
+        "mark_arrived", "mark_in_progress", "complete_bookings",
+        "view_earnings", "withdraw_earnings", "chat_with_clients",
+        "manage_profile", "upload_documents", "manage_notifications",
+        "submit_support_queries"
+      ],
+      "required_documents": [
+        { "type": "id", "label": "Government-issued ID", "required": true },
+        { "type": "address_proof", "label": "Proof of Residence", "required": true },
+        { "type": "clearance", "label": "Police Clearance Certificate", "required": true },
+        { "type": "license", "label": "Driver's License", "required": false, "condition": "service_type === 'Transport'" }
+      ]
+    },
+    "admin": {
+      "description": "Platform administrator who manages users, verifies providers, and views analytics",
+      "default_status": "active",
+      "capabilities": [
+        "view_all_users", "filter_users", "activate_block_users", "delete_users",
+        "view_verification_queue", "review_documents", "approve_providers", "reject_providers",
+        "view_revenue_metrics", "view_engagement_stats", "view_service_performance",
+        "manage_promotions", "handle_support_queries", "assign_queries",
+        "view_emergencies", "assign_responders", "resolve_emergencies"
+      ]
+    }
+  },
+
+  "service_categories": [
+    "Cleaning", "Plumbing", "Electrical", "Beauty",
+    "Transport", "Tutoring", "Photography", "Personal Training",
+    "Gardening", "Handyman", "Moving", "Catering", "Other"
+  ],
+
+  "design_patterns": {
+    "repository": {
+      "purpose": "Abstract all Supabase data access behind interfaces",
+      "interface": "IRepository<T> with findById, findMany, create, update, delete",
+      "implementations": [
+        "UserRepository", "ServiceRepository", "BookingRepository",
+        "WalletRepository", "TransactionRepository", "ChatRepository",
+        "NotificationRepository", "ReviewRepository", "QueryRepository", "AdminRepository"
+      ],
+      "location": "src/repositories/"
+    },
+    "strategy": {
+      "purpose": "Interchangeable payment processing methods",
+      "interface": "IPaymentStrategy with processPayment, refund, validatePayment",
+      "implementations": ["YocoCardStrategy", "WalletStrategy", "EaziCashStrategy"],
+      "location": "src/services/payment/"
+    },
+    "state_machine": {
+      "purpose": "Enforce valid booking state transitions",
+      "class": "BookingStateMachine",
+      "location": "src/services/booking-state-machine.ts",
+      "transitions": {
+        "pending": ["confirmed", "cancelled"],
+        "confirmed": ["accepted", "declined", "cancelled"],
+        "accepted": ["arrived", "cancelled"],
+        "arrived": ["in_progress", "cancelled"],
+        "in_progress": ["completed"],
+        "completed": ["reviewed"]
+      }
+    },
+    "observer": {
+      "purpose": "Supabase Realtime subscriptions managed centrally",
+      "class": "RealtimeManager",
+      "location": "src/services/realtime.manager.ts",
+      "subscriptions": ["booking_changes", "chat_messages", "notifications"]
+    },
+    "factory": {
+      "purpose": "Role-specific user creation logic",
+      "implementation": "PostgreSQL trigger handle_new_user() on auth.users INSERT",
+      "creates": ["users row", "wallets row", "admins row (if admin)"]
+    },
+    "facade": {
+      "purpose": "Unified service discovery combining search, filter, geo queries",
+      "class": "ServiceDiscoveryFacade",
+      "location": "src/services/service-discovery.facade.ts",
+      "methods": ["search", "getFeatured", "getByCategory", "getNearby", "getProviderProfile"]
+    }
+  },
+
+  "database": {
+    "extensions": ["uuid-ossp", "postgis"],
+    "tables": {
+      "users": {
+        "description": "All user accounts (clients, providers, admins)",
+        "primary_key": "id UUID REFERENCES auth.users(id)",
+        "columns": {
+          "id": "UUID PK",
+          "name": "TEXT NOT NULL",
+          "email": "TEXT UNIQUE NOT NULL",
+          "role": "user_role NOT NULL DEFAULT 'client'",
+          "status": "user_status NOT NULL DEFAULT 'active'",
+          "profile_image_url": "TEXT",
+          "phone": "TEXT UNIQUE",
+          "is_verified": "BOOLEAN DEFAULT FALSE",
+          "bio": "TEXT",
+          "gender": "gender_type",
+          "date_of_birth": "DATE",
+          "address": "TEXT",
+          "home_address": "TEXT",
+          "office_address": "TEXT",
+          "latitude": "DOUBLE PRECISION",
+          "longitude": "DOUBLE PRECISION",
+          "location": "GEOGRAPHY(Point, 4326)",
+          "push_token": "TEXT",
+          "created_at": "TIMESTAMPTZ DEFAULT NOW()",
+          "updated_at": "TIMESTAMPTZ DEFAULT NOW()"
+        },
+        "indexes": ["role", "status", "location (GIST)"],
+        "rls": {
+          "select": ["own profile", "admin reads all", "public reads active providers"],
+          "update": ["own profile", "admin updates any"],
+          "insert": "auth trigger only"
+        }
+      },
+      "services": {
+        "description": "Service listings created by providers",
+        "columns": {
+          "id": "UUID PK DEFAULT uuid_generate_v4()",
+          "provider_id": "UUID FK -> users(id) CASCADE",
+          "business_name": "TEXT NOT NULL",
+          "title": "TEXT NOT NULL",
+          "description": "TEXT NOT NULL",
+          "service_type": "TEXT NOT NULL",
+          "operating_hours": "JSONB DEFAULT '{}'",
+          "is_available": "BOOLEAN DEFAULT TRUE",
+          "base_price": "NUMERIC(10,2) NOT NULL CHECK >= 0",
+          "gallery": "TEXT[] DEFAULT '{}'",
+          "social_links": "JSONB DEFAULT '{}'",
+          "avg_rating": "NUMERIC(3,2) DEFAULT 0",
+          "review_count": "INTEGER DEFAULT 0",
+          "is_featured": "BOOLEAN DEFAULT FALSE",
+          "is_verified": "BOOLEAN DEFAULT FALSE",
+          "created_at": "TIMESTAMPTZ DEFAULT NOW()",
+          "updated_at": "TIMESTAMPTZ DEFAULT NOW()"
+        },
+        "indexes": ["provider_id", "service_type", "is_available", "is_featured"],
+        "rls": {
+          "select": "public reads available; provider reads own; admin reads all",
+          "insert": "provider inserts own (auth.uid() = provider_id)",
+          "update": "provider updates own; admin updates any",
+          "delete": "provider deletes own; admin deletes any"
+        }
+      },
+      "bookings": {
+        "description": "Booking records between clients and providers",
+        "columns": {
+          "id": "UUID PK DEFAULT uuid_generate_v4()",
+          "client_id": "UUID FK -> users(id)",
+          "provider_id": "UUID FK -> users(id)",
+          "service_id": "UUID FK -> services(id)",
+          "booking_for": "booking_for DEFAULT 'self'",
+          "recipient_name": "TEXT",
+          "recipient_phone": "TEXT",
+          "service_address": "TEXT NOT NULL",
+          "date": "DATE NOT NULL",
+          "time": "TIME NOT NULL",
+          "estimated_duration": "INTEGER",
+          "is_quick_booking": "BOOLEAN DEFAULT FALSE",
+          "status": "booking_status DEFAULT 'pending'",
+          "status_history": "JSONB DEFAULT '[]'",
+          "amount": "NUMERIC(10,2) NOT NULL CHECK >= 0",
+          "tip_amount": "NUMERIC(10,2) DEFAULT 0",
+          "payment_method": "payment_method",
+          "is_reviewed": "BOOLEAN DEFAULT FALSE",
+          "review_id": "UUID",
+          "created_at": "TIMESTAMPTZ DEFAULT NOW()",
+          "updated_at": "TIMESTAMPTZ DEFAULT NOW()"
+        },
+        "indexes": ["client_id", "provider_id", "service_id", "status", "date"],
+        "realtime_enabled": true,
+        "rls": {
+          "select": "client reads own; provider reads assigned; admin reads all",
+          "insert": "client creates (auth.uid() = client_id)",
+          "update": "provider updates status; client updates own; admin updates any"
+        }
+      },
+      "wallets": {
+        "description": "User wallet balances and earnings",
+        "columns": {
+          "id": "UUID PK DEFAULT uuid_generate_v4()",
+          "user_id": "UUID UNIQUE FK -> users(id) CASCADE",
+          "balance": "NUMERIC(10,2) DEFAULT 0 CHECK >= 0",
+          "eazi_cash_balance": "NUMERIC(10,2) DEFAULT 0 CHECK >= 0",
+          "total_earnings": "NUMERIC(10,2) DEFAULT 0",
+          "pending_earnings": "NUMERIC(10,2) DEFAULT 0",
+          "failed_attempts": "INTEGER DEFAULT 0",
+          "updated_at": "TIMESTAMPTZ DEFAULT NOW()"
+        },
+        "rls": {
+          "select": "own wallet; admin reads all",
+          "update": "Edge Functions only (service_role)"
+        }
+      },
+      "cards": {
+        "description": "Saved payment card tokens",
+        "columns": {
+          "id": "UUID PK", "user_id": "UUID FK", "card_token": "TEXT NOT NULL",
+          "last4": "TEXT NOT NULL", "brand": "TEXT NOT NULL",
+          "exp_month": "INTEGER", "exp_year": "INTEGER", "is_default": "BOOLEAN DEFAULT FALSE"
+        },
+        "rls": "user manages own cards only"
+      },
+      "transactions": {
+        "description": "Financial transaction records",
+        "columns": {
+          "id": "UUID PK", "user_id": "UUID FK", "wallet_id": "UUID FK",
+          "type": "transaction_type NOT NULL", "amount": "NUMERIC(10,2) NOT NULL",
+          "currency": "TEXT DEFAULT 'ZAR'", "method": "payment_method",
+          "status": "transaction_status DEFAULT 'pending'",
+          "booking_id": "UUID FK nullable", "service_id": "UUID FK nullable",
+          "card_id": "UUID FK nullable", "metadata": "JSONB DEFAULT '{}'",
+          "created_at": "TIMESTAMPTZ DEFAULT NOW()"
+        },
+        "rls": {
+          "select": "own transactions; admin reads all",
+          "insert": "Edge Functions only",
+          "update": "Edge Functions only"
+        }
+      },
+      "reviews": {
+        "description": "Client reviews of completed bookings",
+        "columns": {
+          "id": "UUID PK", "booking_id": "UUID UNIQUE FK", "service_id": "UUID FK",
+          "user_id": "UUID FK", "rating": "INTEGER CHECK 1-5",
+          "comment": "TEXT NOT NULL", "tipped": "BOOLEAN DEFAULT FALSE"
+        },
+        "trigger": "AFTER INSERT -> update_service_rating() recalculates avg_rating and review_count",
+        "rls": { "select": "public", "insert": "authenticated user (auth.uid() = user_id)" }
+      },
+      "chat_rooms": {
+        "description": "Chat conversations between two participants",
+        "columns": {
+          "id": "UUID PK", "participant_a_id": "UUID FK", "participant_b_id": "UUID FK",
+          "is_admin_chat": "BOOLEAN DEFAULT FALSE", "booking_id": "UUID FK nullable"
+        },
+        "rls": "participants read/create own rooms; admin reads all"
+      },
+      "messages": {
+        "description": "Chat messages within rooms",
+        "columns": {
+          "id": "UUID PK", "chat_room_id": "UUID FK CASCADE",
+          "sender_id": "UUID FK", "content": "TEXT NOT NULL",
+          "status": "message_status DEFAULT 'sent'"
+        },
+        "realtime_enabled": true,
+        "rls": "chat room participants only (JOIN check on chat_rooms)"
+      },
+      "notifications": {
+        "description": "In-app notifications for all users",
+        "columns": {
+          "id": "UUID PK", "user_id": "UUID FK", "role": "user_role",
+          "title": "TEXT NOT NULL", "message": "TEXT NOT NULL",
+          "type": "notification_type NOT NULL", "read": "BOOLEAN DEFAULT FALSE",
+          "delivered": "BOOLEAN DEFAULT FALSE", "data": "JSONB DEFAULT '{}'",
+          "read_at": "TIMESTAMPTZ"
+        },
+        "realtime_enabled": true,
+        "rls": { "select": "own notifications", "update": "own (mark read)" }
+      },
+      "provider_documents": {
+        "description": "Documents submitted by providers for verification",
+        "columns": {
+          "id": "UUID PK", "provider_id": "UUID FK CASCADE",
+          "document_type": "document_type NOT NULL", "file_url": "TEXT NOT NULL",
+          "file_name": "TEXT NOT NULL", "status": "document_status DEFAULT 'pending'",
+          "submitted_at": "TIMESTAMPTZ DEFAULT NOW()", "reviewed_at": "TIMESTAMPTZ",
+          "reviewed_by_admin_id": "UUID FK nullable", "rejection_reason": "TEXT"
+        },
+        "rls": { "select": "own docs or admin", "insert": "provider own", "update": "admin only" }
+      },
+      "queries": {
+        "description": "Support tickets from users",
+        "columns": {
+          "id": "UUID PK", "user_id": "UUID FK", "subject": "TEXT NOT NULL",
+          "description": "TEXT NOT NULL", "category": "query_category NOT NULL",
+          "priority": "query_priority DEFAULT 'medium'",
+          "status": "query_status DEFAULT 'open'", "assigned_to": "UUID FK nullable",
+          "resolution": "TEXT", "messages": "JSONB DEFAULT '[]'"
+        },
+        "rls": { "select": "own or admin", "insert": "authenticated", "update": "own or admin" }
+      },
+      "trips": {
+        "description": "Trip tracking for bookings",
+        "columns": {
+          "id": "UUID PK", "booking_id": "UUID UNIQUE FK",
+          "provider_id": "UUID FK", "client_id": "UUID FK",
+          "start_location": "JSONB", "end_location": "JSONB",
+          "status": "trip_status DEFAULT 'pending'",
+          "estimated_arrival": "TIMESTAMPTZ", "actual_arrival": "TIMESTAMPTZ",
+          "estimated_distance": "NUMERIC(10,2)", "actual_distance": "NUMERIC(10,2)"
+        },
+        "rls": "booking parties and admin"
+      },
+      "emergencies": {
+        "description": "Emergency reports from users",
+        "columns": {
+          "id": "UUID PK", "user_id": "UUID FK", "severity": "emergency_severity",
+          "description": "TEXT NOT NULL", "location": "JSONB", "address": "TEXT",
+          "related_booking_id": "UUID FK nullable",
+          "status": "emergency_status DEFAULT 'reported'",
+          "assigned_responder": "UUID FK nullable"
+        },
+        "rls": { "select": "own or admin", "insert": "authenticated", "update": "admin" }
+      },
+      "cancellations": {
+        "description": "Cancellation records for bookings",
+        "columns": {
+          "id": "UUID PK", "booking_id": "UUID FK",
+          "client_id": "UUID FK", "provider_id": "UUID FK",
+          "cancellation_reason": "TEXT", "cancelled_by": "cancelled_by_type",
+          "cancelled_at": "TIMESTAMPTZ DEFAULT NOW()"
+        },
+        "rls": "booking parties and admin"
+      },
+      "promotions": {
+        "description": "Platform promotions and featured services",
+        "rls": { "select": "public reads active", "all": "admin manages" }
+      },
+      "admins": {
+        "description": "Admin role configuration and permissions",
+        "rls": "admin reads own"
+      },
+      "provider_requests": {
+        "description": "Provider requests to admin",
+        "rls": { "select": "own or admin", "insert": "provider", "update": "admin" }
+      },
+      "service_gallery": {
+        "description": "Service gallery images",
+        "rls": { "select": "public", "all": "provider manages own service gallery" }
+      }
+    },
+    "triggers": [
+      "on_auth_user_created -> handle_new_user(): Creates users row + wallets row",
+      "update_user_location: Auto-generates GEOGRAPHY from lat/lon",
+      "update_updated_at: Auto-updates updated_at on all tables",
+      "update_service_rating: Recalculates avg_rating and review_count after review INSERT"
+    ],
+    "functions": [
+      "handle_new_user(): Creates user profile + wallet on signup",
+      "update_user_location(): Converts lat/lon to PostGIS geography",
+      "update_updated_at(): Sets updated_at to NOW() on any update",
+      "update_service_rating(): Recalculates service rating after review",
+      "get_admin_dashboard_stats(): Returns aggregated admin dashboard metrics",
+      "is_admin(): Helper to check if current user has admin role"
+    ],
+    "realtime_tables": ["bookings", "messages", "notifications"]
+  },
+
+  "storage_buckets": {
+    "avatars": {
+      "public": true,
+      "allowed_mime": ["image/jpeg", "image/png", "image/webp"],
+      "max_size_mb": 5,
+      "path_pattern": "{user_id}/avatar.{ext}",
+      "policy": "Anyone reads. Authenticated users upload/update/delete own."
+    },
+    "service-gallery": {
+      "public": true,
+      "allowed_mime": ["image/jpeg", "image/png", "image/webp"],
+      "max_size_mb": 10,
+      "max_files_per_service": 5,
+      "path_pattern": "{service_id}/{filename}",
+      "policy": "Anyone reads. Providers manage own service images."
+    },
+    "provider-documents": {
+      "public": false,
+      "allowed_mime": ["image/jpeg", "image/png", "application/pdf"],
+      "max_size_mb": 20,
+      "path_pattern": "{user_id}/{document_type}.{ext}",
+      "policy": "Provider reads own. Admin reads all. Provider uploads own."
+    }
+  },
+
+  "edge_functions": {
+    "create-payment": {
+      "auth": "jwt_required",
+      "method": "POST",
+      "purpose": "Create Yoco checkout session for booking payment or wallet top-up",
+      "input": {
+        "amount": "number (in ZAR, e.g. 350.00)",
+        "booking_id": "string (optional, required if type=booking)",
+        "type": "'booking' | 'topup'",
+        "currency": "'ZAR'"
+      },
+      "output": { "checkout_id": "string", "redirect_url": "string" },
+      "logic": [
+        "1. Verify authenticated user via JWT",
+        "2. If type=booking: verify booking exists, belongs to user, status is pending",
+        "3. Create transaction record with status 'pending'",
+        "4. POST to https://payments.yoco.com/api/checkouts with amount_in_cents",
+        "5. Return checkout URL for WebView redirect"
+      ]
+    },
+    "yoco-webhook": {
+      "auth": "verify_jwt_false",
+      "method": "POST",
+      "purpose": "Handle Yoco payment webhook callbacks",
+      "logic": [
+        "1. Verify webhook signature using YOCO_WEBHOOK_SECRET",
+        "2. Parse event type from payload",
+        "3. If payment.succeeded:",
+        "   a. Update transaction -> status: completed",
+        "   b. If booking: Update booking -> status: confirmed, add status_history entry",
+        "   c. If booking: Credit provider pending_earnings in wallets",
+        "   d. If topup: Credit user wallet balance",
+        "   e. Create notifications for relevant parties",
+        "   f. Call send-push-notification",
+        "4. If payment.failed:",
+        "   a. Update transaction -> status: failed",
+        "   b. If booking: Update booking -> status: cancelled",
+        "   c. Notify user of failure",
+        "5. Return 200 OK"
+      ]
+    },
+    "send-push-notification": {
+      "auth": "internal_only",
+      "method": "POST",
+      "purpose": "Send Expo push notifications via Expo Push API",
+      "input": {
+        "user_id": "string",
+        "title": "string",
+        "body": "string",
+        "data": "object (optional, for deep linking)"
+      },
+      "logic": [
+        "1. Look up user push_token from users table",
+        "2. If no token, skip silently",
+        "3. POST to https://exp.host/--/api/v2/push/send",
+        "4. Handle response for invalid/expired tokens"
+      ]
+    }
+  },
+
+  "navigation": {
+    "auth_stack": {
+      "screens": ["WelcomeScreen", "LoginScreen", "SignUpScreen", "ForgotPasswordScreen", "ResetPasswordScreen"],
+      "condition": "user is NOT authenticated"
+    },
+    "client_tabs": {
+      "condition": "user.role === 'client'",
+      "tabs": {
+        "HomeTab": {
+          "icon": "Home",
+          "stack": ["HomeScreen", "ServiceDetailScreen", "ProviderProfileScreen"]
+        },
+        "BookingsTab": {
+          "icon": "Calendar",
+          "stack": ["BookingsListScreen", "BookingDetailScreen"]
+        },
+        "ChatTab": {
+          "icon": "MessageCircle",
+          "stack": ["ChatListScreen", "ChatRoomScreen"]
+        },
+        "WalletTab": {
+          "icon": "Wallet",
+          "stack": ["WalletScreen", "TransactionHistoryScreen"]
+        },
+        "ProfileTab": {
+          "icon": "User",
+          "stack": ["ProfileScreen", "EditProfileScreen", "SettingsScreen", "SupportScreen", "SupportDetailScreen"]
+        }
+      }
+    },
+    "provider_tabs": {
+      "condition": "user.role === 'provider' AND user.status === 'active'",
+      "tabs": {
+        "DashboardTab": { "icon": "LayoutDashboard", "stack": ["ProviderDashboardScreen"] },
+        "ServicesTab": { "icon": "Briefcase", "stack": ["MyServicesScreen", "CreateServiceScreen", "EditServiceScreen"] },
+        "BookingsTab": { "icon": "Calendar", "stack": ["ProviderBookingsScreen", "ProviderBookingDetailScreen"] },
+        "ChatTab": { "icon": "MessageCircle", "stack": ["ChatListScreen", "ChatRoomScreen"] },
+        "ProfileTab": { "icon": "User", "stack": ["ProfileScreen", "EditProfileScreen"] }
+      }
+    },
+    "admin_tabs": {
+      "condition": "user.role === 'admin'",
+      "tabs": {
+        "DashboardTab": { "icon": "LayoutDashboard", "stack": ["AdminDashboardScreen"] },
+        "UsersTab": { "icon": "Users", "stack": ["UserListScreen", "UserDetailScreen"] },
+        "VerificationTab": { "icon": "ShieldCheck", "stack": ["VerificationQueueScreen", "VerificationDetailScreen"] },
+        "QueriesTab": { "icon": "HelpCircle", "stack": ["QueriesListScreen", "QueryDetailScreen"] },
+        "AnalyticsTab": { "icon": "BarChart3", "stack": ["AnalyticsScreen"] }
+      }
+    },
+    "pending_provider_screen": {
+      "condition": "user.role === 'provider' AND user.status === 'pending_approval'",
+      "shows": "AwaitingVerificationScreen with status info and document resubmission option"
+    },
+    "shared_modals": ["BookingModal", "QuickBookingModal", "NotificationsModal"]
+  },
+
+  "screens": {
+    "auth": {
+      "WelcomeScreen": {
+        "elements": ["App logo centered", "Get Started button -> SignUp", "Already have account link -> Login"],
+        "notes": "Animated splash transition"
+      },
+      "LoginScreen": {
+        "fields": [
+          { "name": "email", "type": "email", "keyboard": "email-address", "autoCapitalize": "none", "validation": "email required + valid format" },
+          { "name": "password", "type": "secure", "showHideToggle": true, "validation": "required, min 8 chars" }
+        ],
+        "actions": ["Log In -> AuthService.signIn()", "Google Sign-In", "Apple Sign-In (iOS only)", "Forgot Password link", "Sign Up link"],
+        "error_handling": "Inline error for invalid credentials, network errors",
+        "loading_state": "Disable button + spinner while authenticating"
+      },
+      "SignUpScreen": {
+        "type": "multi-step",
+        "steps": [
+          { "step": 1, "title": "Role Selection", "fields": ["Two cards: 'I need a service' (Client) / 'I offer services' (Provider)"] },
+          { "step": 2, "title": "Account Details", "fields": ["name", "email", "phone", "password", "confirmPassword"] },
+          { "step": 3, "title": "Business Details", "condition": "role === provider", "fields": ["businessName", "serviceType (dropdown)", "bio", "address"] },
+          { "step": 4, "title": "Document Upload", "condition": "role === provider", "fields": ["Government ID", "Proof of Residence", "Police Clearance", "Driver's License (optional)"] },
+          { "step": 5, "title": "Terms", "fields": ["Accept Terms checkbox"] }
+        ],
+        "progress_indicator": true,
+        "validate_per_step": true
+      }
+    },
+    "client": {
+      "HomeScreen": {
+        "sections": [
+          { "type": "search_bar", "placeholder": "What service do you need?", "opens_overlay": true },
+          { "type": "location_filter", "pill_chip": true, "editable": true, "uses_google_places": true },
+          { "type": "category_chips", "horizontal_scroll": true, "categories": "from service_categories" },
+          { "type": "featured_services", "heading": "Featured Services", "horizontal_scroll": true, "max": 8, "filter": "is_featured = true" },
+          { "type": "all_services", "heading": "All Services", "grid_columns": 2, "pagination": 8, "pull_to_refresh": true, "infinite_scroll": true },
+          { "type": "sort_options", "options": ["Relevance", "Price Low-High", "Price High-Low", "Rating High-Low", "Distance Near-Far"] }
+        ]
+      },
+      "ServiceDetailScreen": {
+        "sections": [
+          { "type": "gallery_carousel", "swipeable": true, "pagination_dots": true, "max_images": 5 },
+          { "type": "header", "fields": ["businessName", "providerName + avatar", "verified badge", "availability"] },
+          { "type": "stats_row", "fields": ["rating (stars + number)", "review_count", "base_price"] },
+          { "type": "description", "full_text": true },
+          { "type": "operating_hours", "table_format": true },
+          { "type": "social_links", "icon_buttons": true },
+          { "type": "reviews", "max_visible": 3, "see_all_link": true }
+        ],
+        "sticky_bottom_bar": {
+          "buttons": ["Book Now -> BookingModal", "Schedule -> BookingModal(calendar)", "Chat -> ChatRoom"]
+        }
+      },
+      "BookingDetailScreen": {
+        "elements": [
+          "Status badge (color-coded)",
+          "Service details (name, provider, image)",
+          "Date, time, address (Open in Maps link)",
+          "Recipient info (if booking for other)",
+          "Payment info (amount, method, transaction ID)",
+          "Status timeline (vertical, timestamped)"
+        ],
+        "client_actions": {
+          "confirmed": ["Cancel Booking"],
+          "completed": ["Leave Review"]
+        },
+        "realtime": "Subscribe to booking row changes on mount"
+      }
+    },
+    "provider": {
+      "ProviderDashboardScreen": {
+        "sections": [
+          { "type": "greeting", "text": "Hello, {name}", "date": true },
+          { "type": "earnings_card", "fields": ["monthly_earnings", "pending_earnings", "available_balance"] },
+          { "type": "stats_row", "fields": ["bookings_today", "completion_rate", "avg_rating"] },
+          { "type": "pending_bookings", "filter": "status = confirmed", "actions": ["Accept", "Decline"] },
+          { "type": "todays_schedule", "timeline_view": true },
+          { "type": "quick_actions", "links": ["Manage Services", "View All Bookings", "Withdraw Earnings"] }
+        ]
+      },
+      "CreateServiceScreen": {
+        "fields": [
+          { "name": "businessName", "type": "text", "required": true, "maxLength": 100 },
+          { "name": "title", "type": "text", "required": true, "maxLength": 150 },
+          { "name": "serviceType", "type": "dropdown", "options": "service_categories", "required": true },
+          { "name": "description", "type": "textarea", "required": true, "maxLength": 1000, "minLength": 20 },
+          { "name": "basePrice", "type": "numeric", "required": true, "min": 50, "currency": "ZAR" },
+          { "name": "operatingHours", "type": "weekly_schedule", "default": "Mon-Fri 08:00-17:00" },
+          { "name": "gallery", "type": "image_picker", "max": 5, "storage_bucket": "service-gallery" },
+          { "name": "socialLinks", "type": "group", "optional": true, "fields": ["twitter", "facebook", "instagram", "website"] }
+        ]
+      }
+    },
+    "admin": {
+      "AdminDashboardScreen": {
+        "stats_cards": ["total_users", "total_providers", "bookings_this_month", "revenue_this_month"],
+        "data_source": "get_admin_dashboard_stats() PostgreSQL function"
+      },
+      "VerificationDetailScreen": {
+        "shows": ["Provider details", "Documents grid with view/download", "Approve button", "Reject button (with reason modal)"],
+        "on_approve": "Set user status=active, is_verified=true, documents status=approved, send notification",
+        "on_reject": "Set documents status=rejected with reason, send notification"
+      }
+    }
+  },
+
+  "payment_flow": {
+    "yoco_card": {
+      "steps": [
+        "1. Client confirms booking and selects 'Pay with Card'",
+        "2. App calls Edge Function create-payment with {amount, bookingId, type: 'booking'}",
+        "3. Edge Function creates Yoco checkout (POST https://payments.yoco.com/api/checkouts)",
+        "4. Edge Function returns {checkoutId, redirectUrl}",
+        "5. App opens redirectUrl in WebView (full screen modal)",
+        "6. User completes payment on Yoco hosted checkout",
+        "7. Yoco redirects to successUrl (eazi://payment-success)",
+        "8. App detects deep link, closes WebView, shows Processing spinner",
+        "9. SIMULTANEOUSLY: Yoco POST webhook to Edge Function yoco-webhook",
+        "10. Edge Function verifies signature, updates transaction/booking/wallet/notifications",
+        "11. Client app receives realtime update -> shows Booking Confirmed screen"
+      ],
+      "yoco_amount_note": "Yoco expects amount in CENTS (e.g., R350.00 = 35000)",
+      "minimum_amount": "R2.00 (Yoco minimum)",
+      "test_card": "Use test card numbers from Yoco dashboard with sk_test_ key"
+    },
+    "wallet": {
+      "steps": [
+        "1. Check wallet balance >= amount",
+        "2. Call Edge Function with {type: 'wallet', amount, bookingId}",
+        "3. Edge Function deducts balance, creates transaction, updates booking",
+        "4. Return success immediately"
+      ]
+    }
+  },
+
+  "realtime_subscriptions": {
+    "booking_status": {
+      "table": "bookings",
+      "event": "UPDATE",
+      "filter": "id=eq.{bookingId}",
+      "usage": "BookingDetailScreen auto-updates when provider accepts/arrives/completes"
+    },
+    "chat_messages": {
+      "table": "messages",
+      "event": "INSERT",
+      "filter": "chat_room_id=eq.{roomId}",
+      "usage": "ChatRoomScreen receives messages instantly without polling"
+    },
+    "user_notifications": {
+      "table": "notifications",
+      "event": "INSERT",
+      "filter": "user_id=eq.{userId}",
+      "usage": "Bell icon badge count, in-app toast on foreground notification"
+    }
+  },
+
+  "design_system": {
+    "colors": {
+      "primary": "#111111",
+      "primary_pressed": "#000000",
+      "white": "#FFFFFF",
+      "accent": "#3ECF8E",
+      "gray_50": "#F9FAFB", "gray_100": "#F3F4F6", "gray_200": "#E5E7EB",
+      "gray_300": "#D1D5DB", "gray_400": "#9CA3AF", "gray_500": "#6B7280",
+      "gray_600": "#4B5563", "gray_700": "#374151", "gray_800": "#1F2937",
+      "success": "#16A34A", "warning": "#F59E0B", "error": "#DC2626", "info": "#2563EB"
+    },
+    "typography": {
+      "font_family": "system (San Francisco iOS, Roboto Android)",
+      "display": "32px bold", "h1": "24px bold", "h2": "20px semibold",
+      "h3": "16px semibold", "body": "14px regular", "caption": "12px regular", "overline": "10px medium"
+    },
+    "spacing": [4, 8, 12, 16, 20, 24, 32, 40, 48, 64],
+    "border_radius": { "sm": 4, "md": 8, "lg": 12, "full": 9999 },
+    "components": {
+      "primary_button": { "bg": "#111111", "text": "#FFFFFF", "radius": 12, "height": 48 },
+      "secondary_button": { "bg": "transparent", "text": "#111111", "border": "#111111 2px", "radius": 12 },
+      "input": { "bg": "#FFFFFF", "text": "#111111", "border": "#D1D5DB 1px", "focus_border": "#111111 2px", "error_border": "#DC2626 2px", "radius": 8 },
+      "card": { "bg": "#FFFFFF", "border": "#E5E7EB 1px", "radius": 12 },
+      "badge": { "radius": 9999 },
+      "tab_bar": { "bg": "#FFFFFF", "active": "#111111", "inactive": "#6B7280", "height": 60, "top_border": "#D1D5DB" }
+    },
+    "status_colors": {
+      "pending": "#6B7280", "confirmed": "#2563EB", "accepted": "#16A34A",
+      "arrived": "#F59E0B", "in_progress": "#F59E0B", "completed": "#16A34A",
+      "declined": "#DC2626", "cancelled": "#DC2626", "reviewed": "#8B5CF6"
+    }
+  },
+
+  "file_structure": {
+    "root": ["app.json", "App.tsx", "babel.config.js", "tailwind.config.js", "tsconfig.json", "eas.json", ".env"],
+    "supabase/": {
+      "config.toml": "Edge Function JWT config",
+      "migrations/": ["001_initial_schema.sql"],
+      "functions/": {
+        "create-payment/": ["index.ts"],
+        "yoco-webhook/": ["index.ts"],
+        "send-push-notification/": ["index.ts"]
+      }
+    },
+    "src/": {
+      "lib/": ["supabase.ts"],
+      "types/": ["database.types.ts", "navigation.types.ts", "index.ts"],
+      "constants/": ["colors.ts", "layout.ts", "booking-transitions.ts"],
+      "repositories/": ["user.repository.ts", "service.repository.ts", "booking.repository.ts", "wallet.repository.ts", "transaction.repository.ts", "chat.repository.ts", "notification.repository.ts", "review.repository.ts", "query.repository.ts", "admin.repository.ts"],
+      "services/": {
+        "root": ["auth.service.ts", "service-discovery.facade.ts", "booking-state-machine.ts", "realtime.manager.ts", "notification.service.ts", "location.service.ts"],
+        "payment/": ["payment-strategy.interface.ts", "payment.service.ts", "yoco-card.strategy.ts", "wallet.strategy.ts", "eazicash.strategy.ts"]
+      },
+      "stores/": ["auth.store.ts", "service.store.ts", "booking.store.ts", "chat.store.ts", "notification.store.ts", "wallet.store.ts"],
+      "hooks/": ["useAuth.ts", "useBooking.ts", "useServices.ts", "useChat.ts", "useWallet.ts", "useLocation.ts", "useNotifications.ts", "useNetworkStatus.ts"],
+      "components/": {
+        "ui/": ["Button.tsx", "Input.tsx", "Badge.tsx", "Card.tsx", "Modal.tsx", "Avatar.tsx", "StarRating.tsx", "ProgressBar.tsx", "Skeleton.tsx", "EmptyState.tsx", "ErrorState.tsx", "Toast.tsx"],
+        "layout/": ["ScreenWrapper.tsx", "Header.tsx", "LoadingScreen.tsx", "AuthGate.tsx"],
+        "services/": ["ServiceCard.tsx", "ServiceList.tsx", "CategoryChips.tsx", "ServiceGallery.tsx", "ReviewCard.tsx"],
+        "bookings/": ["BookingCard.tsx", "BookingStatusBadge.tsx", "BookingTimeline.tsx", "BookingModal.tsx", "QuickBookingSheet.tsx"],
+        "chat/": ["ChatBubble.tsx", "ChatInput.tsx", "ChatRoomItem.tsx"],
+        "wallet/": ["BalanceCard.tsx", "TransactionItem.tsx", "CardItem.tsx"],
+        "maps/": ["MapView.tsx", "LocationPicker.tsx", "AddressAutocomplete.tsx"]
+      },
+      "navigation/": ["RootNavigator.tsx", "AuthStack.tsx", "ClientTabNavigator.tsx", "ProviderTabNavigator.tsx", "AdminTabNavigator.tsx", "linking.ts"],
+      "screens/": {
+        "auth/": ["WelcomeScreen.tsx", "LoginScreen.tsx", "SignUpScreen.tsx", "ForgotPasswordScreen.tsx", "ResetPasswordScreen.tsx"],
+        "client/": ["HomeScreen.tsx", "ServiceDetailScreen.tsx", "ProviderProfileScreen.tsx", "BookingsListScreen.tsx", "BookingDetailScreen.tsx"],
+        "provider/": ["ProviderDashboardScreen.tsx", "MyServicesScreen.tsx", "CreateServiceScreen.tsx", "EditServiceScreen.tsx", "ProviderBookingsScreen.tsx", "ProviderBookingDetailScreen.tsx"],
+        "admin/": ["AdminDashboardScreen.tsx", "UserListScreen.tsx", "UserDetailScreen.tsx", "VerificationQueueScreen.tsx", "VerificationDetailScreen.tsx", "QueriesListScreen.tsx", "QueryDetailScreen.tsx", "AnalyticsScreen.tsx"],
+        "chat/": ["ChatListScreen.tsx", "ChatRoomScreen.tsx"],
+        "wallet/": ["WalletScreen.tsx", "TransactionHistoryScreen.tsx"],
+        "profile/": ["ProfileScreen.tsx", "EditProfileScreen.tsx", "SettingsScreen.tsx", "SupportScreen.tsx", "SupportDetailScreen.tsx"],
+        "shared/": ["NotificationsScreen.tsx", "WebViewScreen.tsx"]
+      }
+    }
+  },
+
+  "build_phases": [
+    { "phase": 0, "name": "Project Initialization", "tasks": ["Create Expo project", "Install all dependencies", "Configure TypeScript, NativeWind, .env", "Verify build compiles"] },
+    { "phase": 1, "name": "Supabase Backend", "tasks": ["Run complete SQL schema", "Apply RLS policies", "Configure storage buckets", "Configure auth providers", "Deploy Edge Functions", "Initialize Supabase client in app", "Generate TypeScript types"] },
+    { "phase": 2, "name": "Authentication", "tasks": ["AuthService", "AuthStore (Zustand)", "WelcomeScreen", "LoginScreen", "SignUpScreen (multi-step)", "ForgotPasswordScreen", "ResetPasswordScreen", "Auth state listener", "AuthGate route protection"] },
+    { "phase": 3, "name": "Navigation & Layout", "tasks": ["RootNavigator", "AuthStack", "ClientTabNavigator", "ProviderTabNavigator", "AdminTabNavigator", "Tab bar styling", "ScreenWrapper", "Header", "LoadingScreen", "EmptyState", "ErrorState"] },
+    { "phase": 4, "name": "Service Discovery", "tasks": ["ServiceDiscoveryFacade", "ServiceRepository", "ServiceStore", "HomeScreen", "ServiceCard", "ServiceDetailScreen", "ProviderProfileScreen", "Search, filter, sort"] },
+    { "phase": 5, "name": "Booking System", "tasks": ["BookingStateMachine", "BookingRepository", "BookingStore", "BookingModal (multi-step)", "BookingDetailScreen", "Status timeline", "Realtime subscription"] },
+    { "phase": 6, "name": "Payment Integration", "tasks": ["IPaymentStrategy interface", "YocoCardStrategy", "WalletStrategy", "EaziCashStrategy", "PaymentService", "WebView checkout flow", "Webhook handling", "Wallet top-up"] },
+    { "phase": 7, "name": "Provider Dashboard", "tasks": ["ProviderDashboardScreen", "MyServicesScreen", "CreateServiceScreen", "EditServiceScreen", "Provider booking management"] },
+    { "phase": 8, "name": "Real-time Chat", "tasks": ["ChatRepository", "RealtimeManager", "ChatListScreen", "ChatRoomScreen", "Message bubbles", "Delivery status", "Pagination"] },
+    { "phase": 9, "name": "Notifications", "tasks": ["NotificationService", "NotificationStore", "Push notification setup", "In-app notifications screen", "Deep linking from notifications"] },
+    { "phase": 10, "name": "Admin Panel", "tasks": ["AdminDashboardScreen", "UserListScreen", "UserDetailScreen", "VerificationQueueScreen", "VerificationDetailScreen", "QueriesListScreen", "QueryDetailScreen", "AnalyticsScreen"] },
+    { "phase": 11, "name": "Reviews, Ratings & Wallet", "tasks": ["Review flow", "Star rating component", "WalletScreen", "TransactionHistoryScreen", "Saved cards", "Withdrawal flow"] },
+    { "phase": 12, "name": "Maps & Quick Booking", "tasks": ["LocationService", "PostGIS setup", "Quick booking flow", "Map integration in booking", "Address autocomplete"] },
+    { "phase": 13, "name": "Polish & Edge Cases", "tasks": ["Error boundary", "Network handling", "Skeleton loading states", "Empty states for all lists", "Input validation with Zod", "Accessibility", "Performance (FlashList, memo, expo-image)"] },
+    { "phase": 14, "name": "Testing", "tasks": ["Jest + Testing Library setup", "Repository tests", "Service tests", "State machine tests (100% coverage)", "Payment strategy tests", "Screen render tests"] },
+    { "phase": 15, "name": "Deployment", "tasks": ["app.config.ts", "eas.json", "GitHub Actions CI/CD", "EAS Build preview + production", "App store submission config"] }
+  ],
+
+  "rules": {
+    "CRITICAL": [
+      "NEVER output partial files — every file must be complete and runnable",
+      "NEVER use // TODO, // implement later, or placeholder functions",
+      "ALWAYS handle errors, loading states, and edge cases",
+      "ALWAYS include TypeScript types for everything",
+      "ALWAYS use the design patterns specified (Repository, Strategy, State Machine, Observer, Factory, Facade)",
+      "Build features incrementally — complete and test each phase before proceeding",
+      "After each phase: verify compile with npx expo start, summarize what was built, then proceed"
+    ],
+    "code_style": [
+      "Use ES modules (import/export), never CommonJS (require)",
+      "Destructure imports: import { useState } from 'react'",
+      "Use path aliases: @/ maps to ./src/",
+      "Prefer functional components with hooks",
+      "Use React.memo for list item components",
+      "Use Zustand selectors, not full store subscriptions",
+      "All Supabase calls go through repository classes, never directly in components",
+      "All payment logic goes through PaymentService/strategies, never inline",
+      "All booking status changes go through BookingStateMachine, never direct updates"
+    ],
+    "naming": {
+      "files": "PascalCase for components/screens, camelCase for services/hooks/stores",
+      "components": "PascalCase",
+      "hooks": "camelCase prefixed with use",
+      "stores": "camelCase suffixed with Store",
+      "repositories": "PascalCase suffixed with Repository",
+      "services": "PascalCase suffixed with Service/Facade/Strategy",
+      "types": "PascalCase, interfaces prefixed with I for service interfaces only"
+    }
+  }
+}

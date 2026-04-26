@@ -1,0 +1,46 @@
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: [
+    './App.{js,jsx,ts,tsx}',
+    './src/**/*.{js,jsx,ts,tsx}',
+  ],
+  presets: [require('nativewind/preset')],
+  theme: {
+    extend: {
+      colors: {
+        primary: '#111111',
+        'primary-pressed': '#000000',
+        white: '#FFFFFF',
+        accent: '#3ECF8E',
+        'gray-50': '#F9FAFB',
+        'gray-100': '#F3F4F6',
+        'gray-200': '#E5E7EB',
+        'gray-300': '#D1D5DB',
+        'gray-400': '#9CA3AF',
+        'gray-500': '#6B7280',
+        'gray-600': '#4B5563',
+        'gray-700': '#374151',
+        'gray-800': '#1F2937',
+        success: '#16A34A',
+        warning: '#F59E0B',
+        error: '#DC2626',
+        info: '#2563EB',
+        'status-pending': '#6B7280',
+        'status-confirmed': '#2563EB',
+        'status-accepted': '#16A34A',
+        'status-arrived': '#F59E0B',
+        'status-in-progress': '#F59E0B',
+        'status-completed': '#16A34A',
+        'status-declined': '#DC2626',
+        'status-cancelled': '#DC2626',
+        'status-reviewed': '#8B5CF6',
+      },
+      borderRadius: {
+        sm: '4px',
+        md: '8px',
+        lg: '12px',
+      },
+    },
+  },
+  plugins: [],
+};

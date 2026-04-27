@@ -1,0 +1,101 @@
+import type { ReactNode } from 'react';
+import { Platform, View } from 'react-native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import {
+  Calendar,
+  Home,
+  MessageSquare,
+  User,
+  Wallet,
+} from 'lucide-react-native';
+import { HomeScreen } from '@/screens/client/HomeScreen';
+import { BookingsListScreen } from '@/screens/client/BookingsListScreen';
+import { ChatListScreen } from '@/screens/chat/ChatListScreen';
+import { WalletScreen } from '@/screens/wallet/WalletScreen';
+import { ProfileScreen } from '@/screens/profile/ProfileScreen';
+import type { ClientTabParamList } from '@/types/navigation.types';
+
+const Tab = createBottomTabNavigator<ClientTabParamList>();
+
+const ACTIVE_COLOR = '#111111';
+const INACTIVE_COLOR = '#6B7280';
+const TAB_HEIGHT = 60;
+
+function tabIcon(
+  IconComponent: (props: { size: number; color: string }) => ReactNode,
+  focused: boolean,
+) {
+  return (
+    <View className="items-center justify-center">
+      <IconComponent size={22} color={focused ? ACTIVE_COLOR : INACTIVE_COLOR} />
+    </View>
+  );
+}
+
+export function ClientTabNavigator() {
+  return (
+    <Tab.Navigator
+      screenOptions={{
+        headerShown: false,
+        tabBarShowLabel: true,
+        tabBarActiveTintColor: ACTIVE_COLOR,
+        tabBarInactiveTintColor: INACTIVE_COLOR,
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: '500',
+          marginBottom: Platform.OS === 'ios' ? 0 : 4,
+        },
+        tabBarStyle: {
+          backgroundColor: '#FFFFFF',
+          borderTopWidth: 1,
+          borderTopColor: '#D1D5DB',
+          height: TAB_HEIGHT + (Platform.OS === 'ios' ? 20 : 0),
+          paddingTop: 8,
+          elevation: 0,
+          shadowOpacity: 0,
+        },
+      }}
+    >
+      <Tab.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{
+          tabBarLabel: 'Home',
+          tabBarIcon: ({ focused }) => tabIcon(Home, focused),
+        }}
+      />
+      <Tab.Screen
+        name="Bookings"
+        component={BookingsListScreen}
+        options={{
+          tabBarLabel: 'Bookings',
+          tabBarIcon: ({ focused }) => tabIcon(Calendar, focused),
+        }}
+      />
+      <Tab.Screen
+        name="Chat"
+        component={ChatListScreen}
+        options={{
+          tabBarLabel: 'Chat',
+          tabBarIcon: ({ focused }) => tabIcon(MessageSquare, focused),
+        }}
+      />
+      <Tab.Screen
+        name="Wallet"
+        component={WalletScreen}
+        options={{
+          tabBarLabel: 'Wallet',
+          tabBarIcon: ({ focused }) => tabIcon(Wallet, focused),
+        }}
+      />
+      <Tab.Screen
+        name="Profile"
+        component={ProfileScreen}
+        options={{
+          tabBarLabel: 'Profile',
+          tabBarIcon: ({ focused }) => tabIcon(User, focused),
+        }}
+      />
+    </Tab.Navigator>
+  );
+}

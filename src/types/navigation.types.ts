@@ -9,6 +9,12 @@ export type AuthStackParamList = {
   ResetPassword: { email: string };
 };
 
+export type HomeStackParamList = {
+  HomeMain: undefined;
+  ServiceDetail: { serviceId: string };
+  ProviderProfile: { providerId: string };
+};
+
 export type ClientTabParamList = {
   Home: undefined;
   Bookings: undefined;
@@ -42,6 +48,9 @@ export type RootStackParamList = {
 
 export type AuthStackScreenProps<T extends keyof AuthStackParamList> =
   NativeStackScreenProps<AuthStackParamList, T>;
+
+export type HomeStackScreenProps<T extends keyof HomeStackParamList> =
+  NativeStackScreenProps<HomeStackParamList, T>;
 
 export type ClientTabScreenProps<T extends keyof ClientTabParamList> =
   BottomTabScreenProps<ClientTabParamList, T>;

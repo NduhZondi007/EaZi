@@ -8,7 +8,7 @@ import {
   User,
   Wallet,
 } from 'lucide-react-native';
-import { HomeScreen } from '@/screens/client/HomeScreen';
+import { HomeStack } from './HomeStack';
 import { BookingsListScreen } from '@/screens/client/BookingsListScreen';
 import { ChatListScreen } from '@/screens/chat/ChatListScreen';
 import { WalletScreen } from '@/screens/wallet/WalletScreen';
@@ -58,7 +58,7 @@ export function ClientTabNavigator() {
     >
       <Tab.Screen
         name="Home"
-        component={HomeScreen}
+        component={HomeStack}
         options={{
           tabBarLabel: 'Home',
           tabBarIcon: ({ focused }) => tabIcon(Home, focused),

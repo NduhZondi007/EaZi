@@ -4,16 +4,12 @@ import type {
   ServiceFilters,
   ServiceWithDetails,
   ServiceWithProvider,
+  ProviderSummary,
   ProviderDetail,
   ProviderWithServices,
 } from '@/types/service.types';
 
 const PAGE_SIZE = 8;
-
-const SERVICE_WITH_PROVIDER_SELECT = `
-  *,
-  provider:users!provider_id(id, name, profile_image_url, is_verified)
-` as const;
 
 export interface IServiceRepository {
   findById(id: string): Promise<ServiceWithDetails | null>;
@@ -25,38 +21,104 @@ export interface IServiceRepository {
 }
 
 export class ServiceRepository implements IServiceRepository {
+  private async attachProviders(services: ServiceRow[]): Promise<ServiceWithProvider[]> {
+    if (services.length === 0) return [];
+
+    const providerIds = [...new Set(services.map((s) => s.provider_id))];
+
+    const { data: providers, error } = await supabase
+      .from('users')
+      .select('id, name, profile_image_url, is_verified')
+      .in('id', providerIds);
+
+    if (error) throw new Error(`ServiceRepository.attachProviders: ${error.message}`);
+
+    const providerMap = new Map(
+      (providers ?? []).map((p) => [p.id, p as ProviderSummary]),
+    );
+
+    return services.map((service) => ({
+      ...service,
+      provider: providerMap.get(service.provider_id) ?? {
+        id: service.provider_id,
+        name: 'Unknown Provider',
+        profile_image_url: null,
+        is_verified: false,
+      },
+    })) as ServiceWithProvider[];
+  }
+
   async findById(id: string): Promise<ServiceWithDetails | null> {
-    const { data, error } = await supabase
+    const { data: service, error: serviceError } = await supabase
       .from('services')
-      .select(`
-        *,
-        provider:users!provider_id(id, name, profile_image_url, is_verified, phone, bio, address),
-        reviews(
-          id, rating, comment, tipped,
-          user:users!user_id(name, profile_image_url)
-        )
-      `)
+      .select('*')
       .eq('id', id)
       .single();
 
-    if (error) {
-      if (error.code === 'PGRST116') return null;
-      throw new Error(`ServiceRepository.findById: ${error.message}`);
+    if (serviceError) {
+      if (serviceError.code === 'PGRST116') return null;
+      throw new Error(`ServiceRepository.findById: ${serviceError.message}`);
     }
-    return data as unknown as ServiceWithDetails;
+
+    const [providerResult, reviewsResult] = await Promise.all([
+      supabase
+        .from('users')
+        .select('id, name, profile_image_url, is_verified, phone, bio, address')
+        .eq('id', service.provider_id)
+        .single(),
+      supabase
+        .from('reviews')
+        .select('id, booking_id, service_id, user_id, rating, comment, tipped')
+        .eq('service_id', id),
+    ]);
+
+    const reviews = reviewsResult.data ?? [];
+    const reviewerIds = [...new Set(reviews.map((r) => r.user_id))];
+    let reviewerMap = new Map<string, { name: string; profile_image_url: string | null }>();
+
+    if (reviewerIds.length > 0) {
+      const { data: reviewers } = await supabase
+        .from('users')
+        .select('id, name, profile_image_url')
+        .in('id', reviewerIds);
+
+      reviewerMap = new Map(
+        (reviewers ?? []).map((u) => [
+          u.id,
+          { name: u.name, profile_image_url: u.profile_image_url },
+        ]),
+      );
+    }
+
+    return {
+      ...service,
+      provider: (providerResult.data as ProviderDetail) ?? {
+        id: service.provider_id,
+        name: 'Unknown Provider',
+        profile_image_url: null,
+        is_verified: false,
+        phone: null,
+        bio: null,
+        address: null,
+      },
+      reviews: reviews.map((r) => ({
+        ...r,
+        user: reviewerMap.get(r.user_id) ?? { name: 'Unknown', profile_image_url: null },
+      })),
+    } as unknown as ServiceWithDetails;
   }
 
   async findFeatured(): Promise<ServiceWithProvider[]> {
     const { data, error } = await supabase
       .from('services')
-      .select(SERVICE_WITH_PROVIDER_SELECT)
+      .select('*')
       .eq('is_featured', true)
       .eq('is_available', true)
       .order('avg_rating', { ascending: false })
       .limit(8);
 
     if (error) throw new Error(`ServiceRepository.findFeatured: ${error.message}`);
-    return (data ?? []) as unknown as ServiceWithProvider[];
+    return this.attachProviders((data ?? []) as ServiceRow[]);
   }
 
   async findAll(
@@ -68,7 +130,7 @@ export class ServiceRepository implements IServiceRepository {
 
     let query = supabase
       .from('services')
-      .select(SERVICE_WITH_PROVIDER_SELECT, { count: 'exact' })
+      .select('*', { count: 'exact' })
       .eq('is_available', true);
 
     if (filters.category) {
@@ -96,8 +158,11 @@ export class ServiceRepository implements IServiceRepository {
     const { data, error, count } = await query.range(from, to);
     if (error) throw new Error(`ServiceRepository.findAll: ${error.message}`);
 
+    const services = (data ?? []) as ServiceRow[];
+    const servicesWithProviders = await this.attachProviders(services);
+
     return {
-      data: (data ?? []) as unknown as ServiceWithProvider[],
+      data: servicesWithProviders,
       count: count ?? 0,
     };
   }
@@ -107,7 +172,7 @@ export class ServiceRepository implements IServiceRepository {
 
     let q = supabase
       .from('services')
-      .select(SERVICE_WITH_PROVIDER_SELECT)
+      .select('*')
       .eq('is_available', true)
       .or(`title.ilike.${term},description.ilike.${term},business_name.ilike.${term}`)
       .limit(20);
@@ -118,7 +183,7 @@ export class ServiceRepository implements IServiceRepository {
 
     const { data, error } = await q;
     if (error) throw new Error(`ServiceRepository.search: ${error.message}`);
-    return (data ?? []) as unknown as ServiceWithProvider[];
+    return this.attachProviders((data ?? []) as ServiceRow[]);
   }
 
   async findByProvider(providerId: string): Promise<ServiceRow[]> {

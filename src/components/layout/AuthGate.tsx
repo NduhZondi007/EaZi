@@ -38,17 +38,22 @@ export function AuthGate() {
     const subscription = authService.onAuthStateChange(async (session) => {
       if (!mounted) return;
 
-      setSession(session);
-      setUser(session?.user ?? null);
-
       if (session?.user) {
+        // Fetch profile before updating auth state so RootNavigator never sees
+        // isAuthenticated=true with profile=null (prevents client UI flash for providers).
+        let profile = null;
         try {
-          const profile = await userRepository.findById(session.user.id);
-          if (mounted) setProfile(profile);
+          profile = await userRepository.findById(session.user.id);
         } catch {
-          if (mounted) setProfile(null);
+          // profile stays null; navigator falls through to client tab
         }
+        if (!mounted) return;
+        setSession(session);
+        setUser(session.user);
+        setProfile(profile);
       } else {
+        setSession(null);
+        setUser(null);
         setProfile(null);
       }
 

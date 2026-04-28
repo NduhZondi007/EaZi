@@ -13,6 +13,35 @@ You are building the **EaZi Platform**, an on-demand services marketplace for So
 - All booking status changes go through `BookingStateMachine`. Never update booking status directly.
 - All payments go through `PaymentService` which selects the right `IPaymentStrategy`. Never inline payment logic.
 
+## Error Documentation — MANDATORY
+
+Every error encountered during development **must** be recorded in `eazi-claude-code/ErrorDocumentation.md` before moving on. This includes build errors, migration failures, runtime crashes, TypeScript errors, and test failures.
+
+Each entry must follow this format:
+
+```
+## Error NNN — <short title>
+
+**Date:** YYYY-MM-DD
+**File:** path/to/file
+**Command:** command that triggered the error
+
+### Error Output
+<exact error message>
+
+### Root Cause
+<explanation of why the error occurred>
+
+### Fix Applied
+<what was changed and why it resolves the error>
+```
+
+Rules:
+- Number errors sequentially (001, 002, …).
+- Record the error **before** applying the fix, then document the fix after.
+- Never skip an error entry, even for trivial or quickly-resolved errors.
+- If the same error recurs, add a new entry referencing the original.
+
 ## Build Order — Follow Phases Sequentially
 
 The spec defines 16 phases (0–15). Build them **in order**. After each phase:
@@ -56,5 +85,27 @@ Do NOT attempt to build multiple phases simultaneously.
 
 ## Commit Strategy
 
-- Commit after completing each phase with message: `feat(phase-N): description`
-- Keep commits atomic — one phase per commit.
+Commit after **every meaningful change** — not just phases. Keep commits atomic: one logical change per commit.
+
+### Prefixes
+
+| Prefix | When to use | Example |
+|---|---|---|
+| `feat` | New screen, feature, or capability | `feat(phase-5): booking flow — BookingScreen, BookingRepository, BookingStateMachine` |
+| `fix` | Bug fix, crash, incorrect behaviour | `fix(auth): resolve provider UI flash by fetching profile before setting auth state` |
+| `chore` | Dependency changes, config, tooling, gitignore | `chore(deps): add react-dom and react-native-web` |
+| `docs` | CLAUDE.md, README, ErrorDocumentation, comments | `docs(claude): add error documentation rules and commit strategy` |
+| `refactor` | Code restructure with no behaviour change | `refactor(service-repository): replace PostgREST join with manual attachProviders` |
+| `style` | NativeWind / design-system changes only | `style(home): adjust card spacing to match design spec` |
+| `test` | Adding or fixing tests | `test(booking-state-machine): add invalid transition coverage` |
+| `db` | Migration files, RLS policies, functions | `db(migration): fix function ordering — move table-dependent functions after CREATE TABLE` |
+| `perf` | Performance improvement | `perf(flashlist): switch ServiceList from FlatList to FlashList` |
+
+### Rules
+
+- **Always** use a scope in parentheses: `fix(auth)`, `feat(phase-5)`, `db(migration)`.
+- Phase commits use `feat(phase-N)` and list every file created.
+- Bug fixes and refactors between phases use the specific scope of what changed.
+- Dependency additions/removals always use `chore(deps)`.
+- Every error fix documented in `ErrorDocumentation.md` must have a matching `fix(...)` or `db(...)` commit.
+- Never bundle unrelated changes into one commit.

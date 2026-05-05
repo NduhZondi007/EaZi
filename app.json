@@ -24,7 +24,11 @@
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro",
+      "name": "EaZi Platform",
+      "shortName": "EaZi",
+      "description": "On-demand services marketplace for South Africa"
     }
   }
 }

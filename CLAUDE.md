@@ -42,14 +42,44 @@ Rules:
 - Never skip an error entry, even for trivial or quickly-resolved errors.
 - If the same error recurs, add a new entry referencing the original.
 
+## Vercel Deployment — MANDATORY
+
+The app is deployed as an Expo Web app on Vercel. Every phase must be launchable in a browser.
+
+**Vercel project settings (set once in the Vercel dashboard):**
+- Framework Preset: `Other`
+- Build Command: `npx expo export --platform web`
+- Output Directory: `dist`
+- Install Command: `npm install`
+- Root Directory: `eazi-claude-code/eazi-app`
+
+**Local web commands:**
+```bash
+npm run build:web   # builds to dist/
+npm run preview:web # serves dist/ locally on http://localhost:3000
+```
+
+**Deployment flow:** Push to `main` → Vercel auto-deploys → confirm live URL renders.
+
+### Web Compatibility Rules
+
+- Any library that is native-only (e.g., `react-native-maps`, `expo-notifications`) **must** have a web fallback or be conditionally excluded using `Platform.OS === 'web'` checks.
+- Never import a native-only module at the top level of a screen that renders on web without guarding it.
+- Test the web build locally (`npm run build:web`) before every commit that touches navigation, screens, or native modules.
+
 ## Build Order — Follow Phases Sequentially
 
 The spec defines 16 phases (0–15). Build them **in order**. After each phase:
 1. Run `npx expo start` and confirm zero errors.
-2. Summarize what was built (files created, features added).
-3. Only then proceed to the next phase.
+2. Run `npm run build:web` and confirm the web export succeeds with zero errors.
+3. Push to `main` — Vercel auto-deploys on every push to `main`.
+4. Confirm the Vercel deployment is live and the app renders in a browser.
+5. Summarize what was built (files created, features added).
+6. Only then proceed to the next phase.
 
 Do NOT attempt to build multiple phases simultaneously.
+
+Every phase gate requires **both** the Expo dev server and the Vercel web build to pass.
 
 ## Code Style
 

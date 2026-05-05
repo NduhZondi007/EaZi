@@ -1,7 +1,13 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx create-expo-app@latest eazi-app --template blank-typescript)"
+      "Bash(npx create-expo-app@latest eazi-app --template blank-typescript)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Mancinza\\\\Desktop\\\\Big Projects\\\\EaZi Platform\\\\eazi-claude-code\\\\eazi-app\" -Force)",
+      "Bash(Select-Object Name, PSIsContainer)",
+      "Bash(Format-Table -AutoSize)",
+      "Bash(python3 -c ' *)",
+      "Bash(set METRO_BUNDLER_LOG_LEVEL=verbose)",
+      "Bash(npx metro *)"
     ]
   }
 }

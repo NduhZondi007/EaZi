@@ -1,0 +1,166 @@
+# EaZi Platform — System Requirements & Dependencies
+# ====================================================
+# This file documents all system-level and project-level
+# requirements needed to develop, build, and deploy the app.
+
+
+# ── SYSTEM REQUIREMENTS ──────────────────────────────────────────────────────
+
+# Node.js
+# Version: 18.x LTS or higher (20.x LTS recommended)
+# Install: https://nodejs.org
+# Check:   node --version
+
+# npm
+# Version: 9.x or higher (bundled with Node.js)
+# Check:   npm --version
+
+# Git
+# Version: 2.40 or higher
+# Install: https://git-scm.com
+# Check:   git --version
+
+# Expo CLI (global, optional — npx usage preferred)
+# Install: npm install -g expo-cli   OR use via npx expo
+# Check:   npx expo --version
+
+# Watchman (macOS/Linux only — improves file-watching performance)
+# Install: brew install watchman
+# Check:   watchman --version
+
+# Android Studio (for Android emulator)
+# Version: Hedgehog (2023.1.1) or higher
+# Required: Android SDK, Android Virtual Device
+# Install: https://developer.android.com/studio
+
+# Xcode (macOS only — for iOS simulator)
+# Version: 15 or higher
+# Required: iOS Simulator, Command Line Tools
+# Install: Mac App Store
+
+# Supabase CLI (for local development and migrations)
+# Version: 1.x or higher
+# Install: npm install -g supabase   OR brew install supabase/tap/supabase
+# Check:   supabase --version
+
+
+# ── DEPLOYMENT REQUIREMENTS ──────────────────────────────────────────────────
+
+# Vercel CLI (optional — Vercel dashboard is the primary deployment method)
+# Install: npm install -g vercel
+# Check:   vercel --version
+
+# Vercel Account
+# Sign up: https://vercel.com
+# Project settings:
+#   Framework Preset:  Other
+#   Build Command:     npx expo export --platform web
+#   Output Directory:  dist
+#   Install Command:   npm install
+#   Root Directory:    eazi-claude-code/eazi-app
+
+# Supabase Account (for cloud database)
+# Sign up: https://supabase.com
+# Required env vars: EXPO_PUBLIC_SUPABASE_URL, EXPO_PUBLIC_SUPABASE_ANON_KEY
+
+
+# ── ENVIRONMENT VARIABLES ─────────────────────────────────────────────────────
+# Copy .env.example to .env and fill in the values.
+# All vars prefixed with EXPO_PUBLIC_ are bundled into the client build.
+
+# EXPO_PUBLIC_SUPABASE_URL       — Supabase project URL
+# EXPO_PUBLIC_SUPABASE_ANON_KEY  — Supabase anonymous key (safe for client)
+# EXPO_PUBLIC_GOOGLE_MAPS_API_KEY — Google Maps API key (Android/iOS only)
+# EXPO_PUBLIC_YOCO_PUBLIC_KEY    — Yoco payments public key
+# EXPO_PUBLIC_SENTRY_DSN         — Sentry error tracking DSN
+
+
+# ── NPM DEPENDENCIES (managed via package.json) ──────────────────────────────
+# Install all with: npm install
+
+# Runtime dependencies:
+@hookform/resolvers@^5.2.2
+@react-native-async-storage/async-storage@^3.0.2
+@react-native-community/datetimepicker@^9.1.0
+@react-navigation/bottom-tabs@^7.15.10
+@react-navigation/native@^7.2.2
+@react-navigation/native-stack@^7.14.12
+@sentry/react-native@^8.9.1
+@shopify/flash-list@^2.3.1
+@supabase/supabase-js@^2.104.1
+babel-preset-expo@^55.0.18
+date-fns@^4.1.0
+expo@~54.0.33
+expo-constants@^55.0.15
+expo-device@^55.0.15
+expo-document-picker@^55.0.13
+expo-file-system@^55.0.17
+expo-image@^55.0.9
+expo-image-picker@^55.0.19
+expo-location@^55.1.8
+expo-notifications@^55.0.20
+expo-status-bar@~3.0.9
+lucide-react-native@^1.11.0
+nativewind@^4.2.3
+react@19.1.0
+react-dom@19.1.0
+react-hook-form@^7.74.0
+react-native@0.81.5
+react-native-maps@^1.27.2
+react-native-reanimated@^4.3.0
+react-native-safe-area-context@^5.7.0
+react-native-screens@^4.24.0
+react-native-svg@^15.15.4
+react-native-url-polyfill@^3.0.0
+react-native-web@^0.21.0
+tailwindcss@^3.4.19
+zod@^4.3.6
+zustand@^5.0.12
+
+# Dev dependencies:
+@types/react@~19.1.0
+babel-plugin-module-resolver@^5.0.3
+typescript@~5.9.2
+
+
+# ── THIRD-PARTY SERVICES ─────────────────────────────────────────────────────
+
+# Supabase
+# Purpose: PostgreSQL database, auth, storage, realtime, edge functions
+# Plan:    Free tier sufficient for development; Pro for production
+# Docs:    https://supabase.com/docs
+
+# Yoco
+# Purpose: South African payment gateway
+# Plan:    Test keys available on sign-up; Production keys require KYC
+# Docs:    https://developer.yoco.com
+
+# Google Maps Platform
+# Purpose: Maps, geocoding, place search (Android/iOS only)
+# APIs:    Maps SDK for Android, Maps SDK for iOS, Places API, Geocoding API
+# Billing: Pay-as-you-go; $200 free credit/month
+
+# Sentry
+# Purpose: Error monitoring and crash reporting
+# Plan:    Free tier (5,000 errors/month); Team for production
+
+# Expo Application Services (EAS)
+# Purpose: Cloud builds for Android APK / iOS IPA
+# Plan:    Free tier available; Production builds require paid plan
+# Docs:    https://docs.expo.dev/eas
+
+
+# ── WEB BUILD ────────────────────────────────────────────────────────────────
+
+# Build for web:
+#   npm run build:web
+#   Output: dist/
+
+# Preview locally:
+#   npm run preview:web
+#   Opens: http://localhost:3000
+
+# Notes:
+# - react-native-maps is not supported on web; use Platform.OS guards
+# - expo-notifications falls back gracefully on web
+# - All screens must render without crashing on web at every phase

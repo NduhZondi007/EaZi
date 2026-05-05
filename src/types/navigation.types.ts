@@ -15,6 +15,11 @@ export type HomeStackParamList = {
   ProviderProfile: { providerId: string };
 };
 
+export type BookingsStackParamList = {
+  BookingsList: undefined;
+  BookingDetail: { bookingId: string };
+};
+
 export type ClientTabParamList = {
   Home: undefined;
   Bookings: undefined;
@@ -60,3 +65,6 @@ export type ProviderTabScreenProps<T extends keyof ProviderTabParamList> =
 
 export type AdminTabScreenProps<T extends keyof AdminTabParamList> =
   BottomTabScreenProps<AdminTabParamList, T>;
+
+export type BookingsStackScreenProps<T extends keyof BookingsStackParamList> =
+  NativeStackScreenProps<BookingsStackParamList, T>;

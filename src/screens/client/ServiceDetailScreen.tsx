@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Dimensions,
@@ -21,6 +21,7 @@ import {
   MessageCircle,
   Star,
 } from 'lucide-react-native';
+import { BookingModal } from '@/components/bookings/BookingModal';
 import { Colors } from '@/constants/colors';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { serviceDiscoveryFacade } from '@/services/service-discovery.facade';
@@ -172,6 +173,7 @@ export function ServiceDetailScreen({ route, navigation }: Props) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [galleryIndex, setGalleryIndex] = useState(0);
+  const [bookingModalVisible, setBookingModalVisible] = useState(false);
 
   const loadDetail = useCallback(() => {
     setIsLoading(true);
@@ -191,11 +193,15 @@ export function ServiceDetailScreen({ route, navigation }: Props) {
   }, [loadDetail]);
 
   const handleBookNow = useCallback(() => {
-    // BookingModal implemented in Phase 5
+    setBookingModalVisible(true);
+  }, []);
+
+  const handleBookingSuccess = useCallback((_bookingId: string) => {
+    setBookingModalVisible(false);
   }, []);
 
   const handleChat = useCallback(() => {
-    // ChatRoom implemented in Phase 8
+    /* ChatRoom implemented in Phase 8 */
   }, []);
 
   if (isLoading) {
@@ -441,6 +447,15 @@ export function ServiceDetailScreen({ route, navigation }: Props) {
           </Pressable>
         </View>
       </SafeAreaView>
+
+      {service && (
+        <BookingModal
+          visible={bookingModalVisible}
+          service={service}
+          onClose={() => setBookingModalVisible(false)}
+          onSuccess={handleBookingSuccess}
+        />
+      )}
     </View>
   );
 }

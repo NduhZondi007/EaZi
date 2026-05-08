@@ -89,9 +89,10 @@ Every phase gate requires **both** the Expo dev server and the Vercel web build 
 - `React.memo` for all list item components.
 - Zustand selectors for store access, not full subscriptions.
 - NativeWind (Tailwind) for all styling. No inline `style={}` objects unless truly dynamic.
-- Lucide icons for all iconography.
+- Lucide icons for all iconography. **Never use emoji characters** — replace every emoji with a semantically appropriate Lucide icon coloured from the design-system palette (e.g. `Wrench` for tools, `ShoppingBag` for client actions, `ShieldCheck` for security notes, `User`/`Users` for people).
 - date-fns for all date formatting.
 - FlashList for any list longer than 20 items.
+- All auth screens (Login, Sign Up step 1, Forgot Password, Reset Password) must be **center-aligned**: logo/icon centred at top, headings and subtitles use `text-center`, form fields remain full width.
 
 ## File Naming
 

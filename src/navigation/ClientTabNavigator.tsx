@@ -10,8 +10,8 @@ import {
 } from 'lucide-react-native';
 import { HomeStack } from './HomeStack';
 import { BookingsStack } from './BookingsStack';
+import { WalletStack } from './WalletStack';
 import { ChatListScreen } from '@/screens/chat/ChatListScreen';
-import { WalletScreen } from '@/screens/wallet/WalletScreen';
 import { ProfileScreen } from '@/screens/profile/ProfileScreen';
 import type { ClientTabParamList } from '@/types/navigation.types';
 
@@ -82,7 +82,7 @@ export function ClientTabNavigator() {
       />
       <Tab.Screen
         name="Wallet"
-        component={WalletScreen}
+        component={WalletStack}
         options={{
           tabBarLabel: 'Wallet',
           tabBarIcon: ({ focused }) => tabIcon(Wallet, focused),

@@ -18,6 +18,14 @@ export type HomeStackParamList = {
 export type BookingsStackParamList = {
   BookingsList: undefined;
   BookingDetail: { bookingId: string };
+  WebView: { url: string; title: string };
+};
+
+export type WalletStackParamList = {
+  WalletMain: undefined;
+  TransactionHistory: undefined;
+  TopUp: undefined;
+  WebView: { url: string; title: string };
 };
 
 export type ClientTabParamList = {
@@ -68,3 +76,6 @@ export type AdminTabScreenProps<T extends keyof AdminTabParamList> =
 
 export type BookingsStackScreenProps<T extends keyof BookingsStackParamList> =
   NativeStackScreenProps<BookingsStackParamList, T>;
+
+export type WalletStackScreenProps<T extends keyof WalletStackParamList> =
+  NativeStackScreenProps<WalletStackParamList, T>;

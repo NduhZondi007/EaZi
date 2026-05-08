@@ -7,7 +7,11 @@
       "Bash(Format-Table -AutoSize)",
       "Bash(python3 -c ' *)",
       "Bash(set METRO_BUNDLER_LOG_LEVEL=verbose)",
-      "Bash(npx metro *)"
+      "Bash(npx metro *)",
+      "Bash(python -c ' *)",
+      "Bash(mkdir -p \"C:\\\\Users\\\\Mancinza\\\\Desktop\\\\Big Projects\\\\EaZi Platform\\\\eazi-claude-code\\\\supabase\\\\functions\\\\create-payment\")",
+      "Bash(mkdir -p \"C:\\\\Users\\\\Mancinza\\\\Desktop\\\\Big Projects\\\\EaZi Platform\\\\eazi-claude-code\\\\supabase\\\\functions\\\\yoco-webhook\")",
+      "Bash(mkdir -p \"C:\\\\Users\\\\Mancinza\\\\Desktop\\\\Big Projects\\\\EaZi Platform\\\\eazi-claude-code\\\\supabase\\\\functions\\\\send-push-notification\")"
     ]
   }
 }

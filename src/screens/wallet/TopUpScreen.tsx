@@ -8,7 +8,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ChevronLeft } from 'lucide-react-native';
+import { ChevronLeft, ShieldCheck } from 'lucide-react-native';
 import { Button } from '@/components/ui/Button';
 import { Colors } from '@/constants/colors';
 import { useWallet } from '@/hooks/useWallet';
@@ -142,9 +142,10 @@ export function TopUpScreen({ navigation }: Props) {
         )}
 
         {/* Payment note */}
-        <View className="bg-blue-50 rounded-xl p-3 mt-6 mb-8">
-          <Text className="text-xs text-blue-700 leading-4">
-            🔒 Payments are processed securely via Yoco. Your card details are never stored on EaZi servers.
+        <View className="bg-blue-50 rounded-xl p-3 mt-6 mb-8 flex-row items-start gap-2.5">
+          <ShieldCheck size={14} color="#1D4ED8" style={{ marginTop: 1 }} />
+          <Text className="flex-1 text-xs text-blue-700 leading-4">
+            Payments are processed securely via Yoco. Your card details are never stored on EaZi servers.
           </Text>
         </View>
       </ScrollView>

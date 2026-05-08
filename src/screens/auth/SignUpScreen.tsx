@@ -13,7 +13,7 @@ import {
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Check, ChevronLeft } from 'lucide-react-native';
+import { Check, ChevronLeft, ShoppingBag, Wrench } from 'lucide-react-native';
 import { authService } from '@/services/auth.service';
 import { useAuthStore } from '@/stores/auth.store';
 import { Button } from '@/components/ui/Button';
@@ -154,10 +154,14 @@ export function SignUpScreen({ navigation }: Props) {
 
   const renderStep1 = () => (
     <View className="flex-1">
-      <Text className="text-3xl font-bold text-[#111111] mb-2">I want to…</Text>
-      <Text className="text-base text-[#6B7280] mb-8">
-        Choose how you'll use EaZi
-      </Text>
+      <View className="items-center mb-8">
+        <Text className="text-3xl font-bold text-[#111111] text-center mb-2">
+          I want to…
+        </Text>
+        <Text className="text-base text-[#6B7280] text-center">
+          Choose how you'll use EaZi
+        </Text>
+      </View>
 
       <View className="gap-4">
         <Pressable
@@ -165,7 +169,9 @@ export function SignUpScreen({ navigation }: Props) {
           className="p-6 rounded-xl border-2 border-[#E5E7EB] bg-white"
           accessibilityRole="button"
         >
-          <Text className="text-2xl mb-2">🛒</Text>
+          <View className="w-10 h-10 rounded-full bg-blue-50 items-center justify-center mb-3">
+            <ShoppingBag size={20} color="#2563EB" />
+          </View>
           <Text className="text-lg font-semibold text-[#111111]">Find a service</Text>
           <Text className="text-sm text-[#6B7280] mt-1">
             Book verified service providers near me
@@ -177,7 +183,9 @@ export function SignUpScreen({ navigation }: Props) {
           className="p-6 rounded-xl border-2 border-[#E5E7EB] bg-white"
           accessibilityRole="button"
         >
-          <Text className="text-2xl mb-2">🔧</Text>
+          <View className="w-10 h-10 rounded-full bg-gray-100 items-center justify-center mb-3">
+            <Wrench size={20} color="#374151" />
+          </View>
           <Text className="text-lg font-semibold text-[#111111]">Offer services</Text>
           <Text className="text-sm text-[#6B7280] mt-1">
             Grow my business and earn more customers

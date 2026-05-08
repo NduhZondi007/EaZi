@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { Image } from 'expo-image';
-import { Calendar, Clock } from 'lucide-react-native';
+import { Calendar, Clock, Wrench } from 'lucide-react-native';
 import { format, parseISO } from 'date-fns';
 import { BookingStatusBadge } from './BookingStatusBadge';
 import { Colors } from '@/constants/colors';
@@ -36,7 +36,7 @@ export const BookingCard = React.memo(function BookingCard({ booking, onPress }:
             className="bg-gray-100 items-center justify-center"
             style={{ width: 64, height: 64, borderRadius: 10 }}
           >
-            <Text style={{ fontSize: 24 }}>🛠</Text>
+            <Wrench size={26} color={Colors.gray400} />
           </View>
         )}
 

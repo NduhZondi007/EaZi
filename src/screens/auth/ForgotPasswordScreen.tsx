@@ -11,7 +11,7 @@ import {
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { ChevronLeft, Mail } from 'lucide-react-native';
+import { AlertCircle, ChevronLeft, KeyRound, Mail } from 'lucide-react-native';
 import { authService } from '@/services/auth.service';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -63,7 +63,7 @@ export function ForgotPasswordScreen({ navigation }: Props) {
         <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
         <View className="flex-1 items-center justify-center px-6">
           <View className="w-16 h-16 rounded-full bg-[#F0FDF4] items-center justify-center mb-6">
-            <Mail size={32} color="#16A34A" />
+            <Mail size={28} color="#16A34A" />
           </View>
           <Text className="text-2xl font-bold text-[#111111] text-center mb-3">
             Check your email
@@ -115,9 +115,15 @@ export function ForgotPasswordScreen({ navigation }: Props) {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <View className="flex-1 px-6">
-          <View className="mb-10">
-            <Text className="text-3xl font-bold text-[#111111]">Reset password</Text>
-            <Text className="text-base text-[#6B7280] mt-2">
+          {/* Centered header */}
+          <View className="items-center mb-10">
+            <View className="w-14 h-14 rounded-full bg-gray-100 items-center justify-center mb-4">
+              <KeyRound size={24} color="#374151" />
+            </View>
+            <Text className="text-3xl font-bold text-[#111111] text-center">
+              Reset password
+            </Text>
+            <Text className="text-base text-[#6B7280] mt-2 text-center">
               Enter your email and we'll send you a link to reset your password.
             </Text>
           </View>
@@ -141,8 +147,9 @@ export function ForgotPasswordScreen({ navigation }: Props) {
           />
 
           {error ? (
-            <View className="mt-4 p-3 bg-red-50 rounded-lg">
-              <Text className="text-sm text-[#DC2626]">{error}</Text>
+            <View className="mt-4 p-3 bg-red-50 rounded-lg flex-row items-center gap-2">
+              <AlertCircle size={14} color="#DC2626" />
+              <Text className="flex-1 text-sm text-[#DC2626]">{error}</Text>
             </View>
           ) : null}
 

@@ -18,6 +18,7 @@ import {
   CreditCard,
   MapPin,
   User,
+  Wrench,
 } from 'lucide-react-native';
 import { BookingStatusBadge } from '@/components/bookings/BookingStatusBadge';
 import { BookingTimeline } from '@/components/bookings/BookingTimeline';
@@ -140,7 +141,7 @@ export function BookingDetailScreen({ route, navigation }: Props) {
             />
           ) : (
             <View className="h-44 bg-gray-100 items-center justify-center">
-              <Text style={{ fontSize: 40 }}>🛠</Text>
+              <Wrench size={40} color={Colors.gray400} />
             </View>
           )}
           <View className="absolute bottom-3 right-3">

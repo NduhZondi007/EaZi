@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { format } from 'date-fns';
-import { ChevronLeft, X } from 'lucide-react-native';
+import { ChevronLeft, CreditCard, Shield, User, Users, X } from 'lucide-react-native';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Colors } from '@/constants/colors';
@@ -352,7 +352,11 @@ export function BookingModal({ visible, service, onClose, onSuccess }: Props) {
               form.bookingFor === opt ? 'border-gray-900 bg-gray-50' : 'border-gray-200',
             ].join(' ')}
           >
-            <Text className="text-2xl mb-1">{opt === 'self' ? '👤' : '👥'}</Text>
+            <View className="mb-2">
+              {opt === 'self'
+                ? <User size={24} color={form.bookingFor === opt ? Colors.primary : Colors.gray400} />
+                : <Users size={24} color={form.bookingFor === opt ? Colors.primary : Colors.gray400} />}
+            </View>
             <Text
               className={[
                 'text-sm font-semibold',
@@ -416,9 +420,10 @@ export function BookingModal({ visible, service, onClose, onSuccess }: Props) {
         </View>
       </View>
 
-      <View className="bg-blue-50 rounded-xl p-3">
-        <Text className="text-xs text-blue-700 leading-4">
-          💳 Payment is due after booking confirmation. The provider will accept your booking and payment will be collected.
+      <View className="bg-blue-50 rounded-xl p-3 flex-row items-start gap-2.5">
+        <CreditCard size={14} color="#1D4ED8" style={{ marginTop: 1 }} />
+        <Text className="flex-1 text-xs text-blue-700 leading-4">
+          Payment is due after booking confirmation. The provider will accept your booking and payment will be collected.
         </Text>
       </View>
     </View>

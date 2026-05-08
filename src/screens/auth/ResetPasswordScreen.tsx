@@ -10,7 +10,7 @@ import {
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { CheckCircle } from 'lucide-react-native';
+import { AlertCircle, CheckCircle, Lock } from 'lucide-react-native';
 import { authService } from '@/services/auth.service';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -70,7 +70,7 @@ export function ResetPasswordScreen({ navigation }: Props) {
             <CheckCircle size={32} color="#16A34A" />
           </View>
           <Text className="text-2xl font-bold text-[#111111] text-center mb-3">
-            Password updated!
+            Password updated
           </Text>
           <Text className="text-base text-[#6B7280] text-center mb-10">
             Your password has been changed successfully. You can now log in with your new
@@ -94,9 +94,15 @@ export function ResetPasswordScreen({ navigation }: Props) {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <View className="flex-1 px-6 pt-16">
-          <View className="mb-10">
-            <Text className="text-3xl font-bold text-[#111111]">New password</Text>
-            <Text className="text-base text-[#6B7280] mt-2">
+          {/* Centered header */}
+          <View className="items-center mb-10">
+            <View className="w-14 h-14 rounded-full bg-gray-100 items-center justify-center mb-4">
+              <Lock size={24} color="#374151" />
+            </View>
+            <Text className="text-3xl font-bold text-[#111111] text-center">
+              New password
+            </Text>
+            <Text className="text-base text-[#6B7280] mt-2 text-center">
               Enter and confirm your new password below.
             </Text>
           </View>
@@ -136,8 +142,9 @@ export function ResetPasswordScreen({ navigation }: Props) {
           </View>
 
           {error ? (
-            <View className="mt-4 p-3 bg-red-50 rounded-lg">
-              <Text className="text-sm text-[#DC2626]">{error}</Text>
+            <View className="mt-4 p-3 bg-red-50 rounded-lg flex-row items-center gap-2">
+              <AlertCircle size={14} color="#DC2626" />
+              <Text className="flex-1 text-sm text-[#DC2626]">{error}</Text>
             </View>
           ) : null}
 

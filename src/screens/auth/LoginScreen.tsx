@@ -12,6 +12,7 @@ import {
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { AlertCircle } from 'lucide-react-native';
 import { authService } from '@/services/auth.service';
 import { useAuthStore } from '@/stores/auth.store';
 import { Button } from '@/components/ui/Button';
@@ -71,9 +72,15 @@ export function LoginScreen({ navigation }: Props) {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <View className="mb-10">
-            <Text className="text-3xl font-bold text-[#111111]">Welcome back</Text>
-            <Text className="text-base text-[#6B7280] mt-2">
+          {/* Brand mark */}
+          <View className="items-center mb-10 pt-4">
+            <View className="w-16 h-16 rounded-2xl bg-[#111111] items-center justify-center mb-4">
+              <Text className="text-white text-2xl font-bold">E</Text>
+            </View>
+            <Text className="text-3xl font-bold text-[#111111] text-center">
+              Welcome back
+            </Text>
+            <Text className="text-base text-[#6B7280] mt-2 text-center">
               Sign in to your EaZi account
             </Text>
           </View>
@@ -115,7 +122,7 @@ export function LoginScreen({ navigation }: Props) {
 
             <Pressable
               onPress={() => navigation.navigate('ForgotPassword')}
-              className="self-end"
+              className="items-center"
               accessibilityRole="button"
             >
               <Text className="text-sm text-[#111111] font-medium">Forgot password?</Text>
@@ -123,8 +130,9 @@ export function LoginScreen({ navigation }: Props) {
           </View>
 
           {authError ? (
-            <View className="mt-4 p-3 bg-red-50 rounded-lg">
-              <Text className="text-sm text-[#DC2626]">{authError}</Text>
+            <View className="mt-4 p-3 bg-red-50 rounded-lg flex-row items-center gap-2">
+              <AlertCircle size={14} color="#DC2626" />
+              <Text className="flex-1 text-sm text-[#DC2626]">{authError}</Text>
             </View>
           ) : null}
 
@@ -146,7 +154,7 @@ export function LoginScreen({ navigation }: Props) {
               className="h-12 items-center justify-center"
               accessibilityRole="button"
             >
-              <Text className="text-sm text-[#6B7280]">
+              <Text className="text-sm text-[#6B7280] text-center">
                 Don&apos;t have an account?{' '}
                 <Text className="text-[#111111] font-semibold">Sign up</Text>
               </Text>

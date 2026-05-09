@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -215,8 +215,8 @@ export function EditServiceScreen({ route, navigation }: Props) {
       <ScrollView
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
-        contentContainerClassName="px-4 pt-5 pb-10 gap-5"
       >
+        <View className="px-4 pt-5 pb-10 gap-5">
         <SectionTitle title="Basic Information" />
 
         <Controller
@@ -471,6 +471,7 @@ export function EditServiceScreen({ route, navigation }: Props) {
           isLoading={isActionLoading}
           disabled={isActionLoading}
         />
+        </View>
       </ScrollView>
     </SafeAreaView>
   );

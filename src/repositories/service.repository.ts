@@ -7,6 +7,8 @@ import type {
   ProviderSummary,
   ProviderDetail,
   ProviderWithServices,
+  ServiceCreateInput,
+  ServiceUpdateInput,
 } from '@/types/service.types';
 
 const PAGE_SIZE = 8;
@@ -18,6 +20,11 @@ export interface IServiceRepository {
   search(query: string, category?: string | null): Promise<ServiceWithProvider[]>;
   findByProvider(providerId: string): Promise<ServiceRow[]>;
   getProviderWithServices(providerId: string): Promise<ProviderWithServices | null>;
+  create(providerId: string, input: ServiceCreateInput): Promise<ServiceRow>;
+  update(id: string, input: ServiceUpdateInput): Promise<ServiceRow>;
+  remove(id: string): Promise<void>;
+  toggleAvailability(id: string, isAvailable: boolean): Promise<ServiceRow>;
+  uploadGalleryImages(providerId: string, uris: string[]): Promise<string[]>;
 }
 
 export class ServiceRepository implements IServiceRepository {
@@ -148,7 +155,6 @@ export class ServiceRepository implements IServiceRepository {
         query = query.order('avg_rating', { ascending: false });
         break;
       case 'distance_asc':
-        // PostGIS distance sort is in Phase 12; fall back to rating
         query = query.order('avg_rating', { ascending: false });
         break;
       default:
@@ -211,6 +217,90 @@ export class ServiceRepository implements IServiceRepository {
 
     const services = await this.findByProvider(providerId);
     return { ...(provider as ProviderDetail), services };
+  }
+
+  async create(providerId: string, input: ServiceCreateInput): Promise<ServiceRow> {
+    const { data, error } = await supabase
+      .from('services')
+      .insert({
+        provider_id: providerId,
+        business_name: input.business_name,
+        title: input.title,
+        description: input.description,
+        service_type: input.service_type,
+        base_price: input.base_price,
+        operating_hours: (input.operating_hours ?? {}) as Record<string, unknown>,
+        gallery: input.gallery ?? [],
+        social_links: input.social_links ?? {},
+      })
+      .select()
+      .single();
+
+    if (error) throw new Error(`ServiceRepository.create: ${error.message}`);
+    return data as ServiceRow;
+  }
+
+  async update(id: string, input: ServiceUpdateInput): Promise<ServiceRow> {
+    const payload: Record<string, unknown> = {};
+    if (input.business_name !== undefined) payload.business_name = input.business_name;
+    if (input.title !== undefined) payload.title = input.title;
+    if (input.description !== undefined) payload.description = input.description;
+    if (input.service_type !== undefined) payload.service_type = input.service_type;
+    if (input.base_price !== undefined) payload.base_price = input.base_price;
+    if (input.operating_hours !== undefined) payload.operating_hours = input.operating_hours;
+    if (input.gallery !== undefined) payload.gallery = input.gallery;
+    if (input.social_links !== undefined) payload.social_links = input.social_links;
+    if (input.is_available !== undefined) payload.is_available = input.is_available;
+
+    const { data, error } = await supabase
+      .from('services')
+      .update(payload)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw new Error(`ServiceRepository.update: ${error.message}`);
+    return data as ServiceRow;
+  }
+
+  async remove(id: string): Promise<void> {
+    const { error } = await supabase.from('services').delete().eq('id', id);
+    if (error) throw new Error(`ServiceRepository.remove: ${error.message}`);
+  }
+
+  async toggleAvailability(id: string, isAvailable: boolean): Promise<ServiceRow> {
+    return this.update(id, { is_available: isAvailable });
+  }
+
+  async uploadGalleryImages(providerId: string, uris: string[]): Promise<string[]> {
+    const urls: string[] = [];
+
+    for (const uri of uris) {
+      if (uri.startsWith('https://')) {
+        urls.push(uri);
+        continue;
+      }
+
+      const ext = uri.split('.').pop()?.toLowerCase() ?? 'jpg';
+      const filename = `${providerId}/${Date.now()}-${Math.random().toString(36).substring(2)}.${ext}`;
+      const contentType = ext === 'png' ? 'image/png' : 'image/jpeg';
+
+      const response = await fetch(uri);
+      const blob = await response.blob();
+
+      const { error: uploadError } = await supabase.storage
+        .from('service-gallery')
+        .upload(filename, blob, { contentType, upsert: false });
+
+      if (uploadError) {
+        throw new Error(`ServiceRepository.uploadGalleryImages: ${uploadError.message}`);
+      }
+
+      const { data } = supabase.storage.from('service-gallery').getPublicUrl(filename);
+      urls.push(data.publicUrl);
+    }
+
+    return urls;
   }
 }
 

@@ -36,6 +36,17 @@ export type ClientTabParamList = {
   Profile: undefined;
 };
 
+export type ProviderServicesStackParamList = {
+  MyServices: undefined;
+  CreateService: undefined;
+  EditService: { serviceId: string };
+};
+
+export type ProviderBookingsStackParamList = {
+  ProviderBookingsList: undefined;
+  ProviderBookingDetail: { bookingId: string };
+};
+
 export type ProviderTabParamList = {
   Dashboard: undefined;
   Services: undefined;
@@ -79,3 +90,9 @@ export type BookingsStackScreenProps<T extends keyof BookingsStackParamList> =
 
 export type WalletStackScreenProps<T extends keyof WalletStackParamList> =
   NativeStackScreenProps<WalletStackParamList, T>;
+
+export type ProviderServicesStackScreenProps<T extends keyof ProviderServicesStackParamList> =
+  NativeStackScreenProps<ProviderServicesStackParamList, T>;
+
+export type ProviderBookingsStackScreenProps<T extends keyof ProviderBookingsStackParamList> =
+  NativeStackScreenProps<ProviderBookingsStackParamList, T>;

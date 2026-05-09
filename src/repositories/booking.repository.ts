@@ -1,3 +1,4 @@
+import { format } from 'date-fns';
 import { supabase } from '@/lib/supabase';
 import { bookingStateMachine } from '@/services/booking-state-machine';
 import type { BookingRow, BookingStatus } from '@/types/database.types';
@@ -8,11 +9,14 @@ import type {
   CreateBookingInput,
   StatusHistoryEntry,
 } from '@/types/booking.types';
+import type { ProviderStats } from '@/types/service.types';
 
 export interface IBookingRepository {
   findById(id: string): Promise<BookingWithDetails | null>;
   findByClient(clientId: string): Promise<BookingWithDetails[]>;
   findByProvider(providerId: string): Promise<BookingWithDetails[]>;
+  findPendingByProvider(providerId: string): Promise<BookingWithDetails[]>;
+  findTodayByProvider(providerId: string): Promise<BookingWithDetails[]>;
   create(input: CreateBookingInput): Promise<BookingRow>;
   updateStatus(
     id: string,
@@ -21,6 +25,9 @@ export interface IBookingRepository {
     note?: string,
   ): Promise<BookingRow>;
   cancel(id: string, currentStatus: BookingStatus): Promise<BookingRow>;
+  acceptBooking(id: string, currentStatus: BookingStatus): Promise<BookingRow>;
+  declineBooking(id: string, currentStatus: BookingStatus): Promise<BookingRow>;
+  getProviderStats(providerId: string): Promise<ProviderStats>;
 }
 
 export class BookingRepository implements IBookingRepository {
@@ -119,6 +126,33 @@ export class BookingRepository implements IBookingRepository {
     return this.attachDetails((data ?? []) as BookingRow[]);
   }
 
+  async findPendingByProvider(providerId: string): Promise<BookingWithDetails[]> {
+    const { data, error } = await supabase
+      .from('bookings')
+      .select('*')
+      .eq('provider_id', providerId)
+      .eq('status', 'confirmed')
+      .order('date', { ascending: true });
+
+    if (error) throw new Error(`BookingRepository.findPendingByProvider: ${error.message}`);
+    return this.attachDetails((data ?? []) as BookingRow[]);
+  }
+
+  async findTodayByProvider(providerId: string): Promise<BookingWithDetails[]> {
+    const today = format(new Date(), 'yyyy-MM-dd');
+
+    const { data, error } = await supabase
+      .from('bookings')
+      .select('*')
+      .eq('provider_id', providerId)
+      .eq('date', today)
+      .not('status', 'in', '(declined,cancelled)')
+      .order('time', { ascending: true });
+
+    if (error) throw new Error(`BookingRepository.findTodayByProvider: ${error.message}`);
+    return this.attachDetails((data ?? []) as BookingRow[]);
+  }
+
   async create(input: CreateBookingInput): Promise<BookingRow> {
     const initialEntry: StatusHistoryEntry = {
       status: 'pending',
@@ -181,6 +215,91 @@ export class BookingRepository implements IBookingRepository {
 
   async cancel(id: string, currentStatus: BookingStatus): Promise<BookingRow> {
     return this.updateStatus(id, currentStatus, 'cancelled', 'Cancelled by client');
+  }
+
+  async acceptBooking(id: string, currentStatus: BookingStatus): Promise<BookingRow> {
+    return this.updateStatus(id, currentStatus, 'accepted', 'Provider accepted the booking');
+  }
+
+  async declineBooking(id: string, currentStatus: BookingStatus): Promise<BookingRow> {
+    return this.updateStatus(id, currentStatus, 'declined', 'Provider declined the booking');
+  }
+
+  async getProviderStats(providerId: string): Promise<ProviderStats> {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    const today = format(now, 'yyyy-MM-dd');
+
+    const [
+      monthlyResult,
+      pendingResult,
+      todayResult,
+      totalResult,
+      completedResult,
+      servicesResult,
+    ] = await Promise.all([
+      supabase
+        .from('bookings')
+        .select('amount')
+        .eq('provider_id', providerId)
+        .eq('status', 'completed')
+        .gte('created_at', startOfMonth),
+      supabase
+        .from('bookings')
+        .select('amount')
+        .eq('provider_id', providerId)
+        .in('status', ['confirmed', 'accepted']),
+      supabase
+        .from('bookings')
+        .select('id', { count: 'exact', head: true })
+        .eq('provider_id', providerId)
+        .eq('date', today),
+      supabase
+        .from('bookings')
+        .select('id', { count: 'exact', head: true })
+        .eq('provider_id', providerId)
+        .not('status', 'in', '(pending,declined,cancelled)'),
+      supabase
+        .from('bookings')
+        .select('id', { count: 'exact', head: true })
+        .eq('provider_id', providerId)
+        .in('status', ['completed', 'reviewed']),
+      supabase
+        .from('services')
+        .select('avg_rating, review_count')
+        .eq('provider_id', providerId),
+    ]);
+
+    const monthlyEarnings = (monthlyResult.data ?? []).reduce(
+      (sum, b) => sum + (b.amount as number),
+      0,
+    );
+    const pendingEarnings = (pendingResult.data ?? []).reduce(
+      (sum, b) => sum + (b.amount as number),
+      0,
+    );
+    const bookingsToday = todayResult.count ?? 0;
+    const total = totalResult.count ?? 0;
+    const completed = completedResult.count ?? 0;
+    const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+    const services = servicesResult.data ?? [];
+    const totalReviews = services.reduce((sum, s) => sum + (s.review_count as number), 0);
+    const weightedSum = services.reduce(
+      (sum, s) => sum + (s.avg_rating as number) * (s.review_count as number),
+      0,
+    );
+    const avgRating =
+      totalReviews > 0 ? Math.round((weightedSum / totalReviews) * 10) / 10 : 0;
+
+    return {
+      monthlyEarnings,
+      pendingEarnings,
+      availableBalance: 0,
+      bookingsToday,
+      completionRate,
+      avgRating,
+    };
   }
 }
 

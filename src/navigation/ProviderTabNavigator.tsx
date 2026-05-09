@@ -9,8 +9,8 @@ import {
   User,
 } from 'lucide-react-native';
 import { ProviderDashboardScreen } from '@/screens/provider/ProviderDashboardScreen';
-import { MyServicesScreen } from '@/screens/provider/MyServicesScreen';
-import { ProviderBookingsScreen } from '@/screens/provider/ProviderBookingsScreen';
+import { ProviderServicesStack } from './ProviderServicesStack';
+import { ProviderBookingsStack } from './ProviderBookingsStack';
 import { ChatListScreen } from '@/screens/chat/ChatListScreen';
 import { ProfileScreen } from '@/screens/profile/ProfileScreen';
 import type { ProviderTabParamList } from '@/types/navigation.types';
@@ -66,7 +66,7 @@ export function ProviderTabNavigator() {
       />
       <Tab.Screen
         name="Services"
-        component={MyServicesScreen}
+        component={ProviderServicesStack}
         options={{
           tabBarLabel: 'Services',
           tabBarIcon: ({ focused }) => tabIcon(Briefcase, focused),
@@ -74,7 +74,7 @@ export function ProviderTabNavigator() {
       />
       <Tab.Screen
         name="Bookings"
-        component={ProviderBookingsScreen}
+        component={ProviderBookingsStack}
         options={{
           tabBarLabel: 'Bookings',
           tabBarIcon: ({ focused }) => tabIcon(Calendar, focused),

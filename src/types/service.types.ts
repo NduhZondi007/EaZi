@@ -37,6 +37,38 @@ export interface ServiceFilters {
   limit?: number;
 }
 
+export interface ServiceCreateInput {
+  business_name: string;
+  title: string;
+  description: string;
+  service_type: string;
+  base_price: number;
+  operating_hours?: OperatingHours;
+  gallery?: string[];
+  social_links?: SocialLinks;
+}
+
+export interface ServiceUpdateInput {
+  business_name?: string;
+  title?: string;
+  description?: string;
+  service_type?: string;
+  base_price?: number;
+  operating_hours?: OperatingHours;
+  gallery?: string[];
+  social_links?: SocialLinks;
+  is_available?: boolean;
+}
+
+export interface ProviderStats {
+  monthlyEarnings: number;
+  pendingEarnings: number;
+  availableBalance: number;
+  bookingsToday: number;
+  completionRate: number;
+  avgRating: number;
+}
+
 export type ProviderSummary = Pick<
   UserRow,
   'id' | 'name' | 'profile_image_url' | 'is_verified'

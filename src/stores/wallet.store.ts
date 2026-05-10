@@ -62,7 +62,10 @@ export const useWalletStore = create<WalletState>((set, get) => ({
 
   async initiateTopUp(userId: string, amount: number) {
     const wallet = get().wallet;
-    if (!wallet) return null;
+    if (!wallet) {
+      set({ error: 'Wallet not found. Please reload or sign in again.' });
+      return null;
+    }
 
     set({ isPaymentProcessing: true, error: null });
     try {

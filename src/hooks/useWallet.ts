@@ -33,7 +33,10 @@ export function useWallet() {
 
   const handleTopUp = useCallback(
     async (amount: number): Promise<{ checkoutUrl: string } | null> => {
-      if (!profile?.id) return null;
+      if (!profile?.id) {
+        useWalletStore.setState({ error: 'Please sign in to top up your wallet.' });
+        return null;
+      }
       return initiateTopUp(profile.id, amount);
     },
     [profile?.id, initiateTopUp],

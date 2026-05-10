@@ -1,6 +1,5 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
-  Alert,
   Pressable,
   ScrollView,
   Text,
@@ -8,7 +7,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ChevronLeft, ShieldCheck } from 'lucide-react-native';
+import { AlertCircle, ChevronLeft, ShieldCheck } from 'lucide-react-native';
 import { Button } from '@/components/ui/Button';
 import { Colors } from '@/constants/colors';
 import { useWallet } from '@/hooks/useWallet';
@@ -19,9 +18,13 @@ type Props = WalletStackScreenProps<'TopUp'>;
 const QUICK_AMOUNTS = [50, 100, 200, 500];
 
 export function TopUpScreen({ navigation }: Props) {
-  const { topUp, isPaymentProcessing, wallet } = useWallet();
+  const { topUp, isPaymentProcessing, wallet, error: walletError, clearError } = useWallet();
   const [amount, setAmount] = useState('');
   const [inputError, setInputError] = useState('');
+
+  useEffect(() => {
+    return () => { clearError(); };
+  }, [clearError]);
 
   const parsedAmount = parseFloat(amount);
   const isValid = !isNaN(parsedAmount) && parsedAmount >= 10 && parsedAmount <= 10000;
@@ -49,10 +52,7 @@ export function TopUpScreen({ navigation }: Props) {
 
     const result = await topUp(parsedAmount);
 
-    if (!result) {
-      Alert.alert('Top-Up Failed', 'Could not initiate top-up. Please try again.');
-      return;
-    }
+    if (!result) return; // error is now surfaced via walletError banner
 
     navigation.navigate('WebView', {
       url: result.checkoutUrl,
@@ -149,6 +149,13 @@ export function TopUpScreen({ navigation }: Props) {
           </Text>
         </View>
       </ScrollView>
+
+      {walletError ? (
+        <View className="mx-4 mb-2 flex-row items-start gap-2 bg-red-50 rounded-xl p-3">
+          <AlertCircle size={14} color="#DC2626" style={{ marginTop: 1 }} />
+          <Text className="flex-1 text-xs text-red-600 leading-4">{walletError}</Text>
+        </View>
+      ) : null}
 
       <View className="px-4 pb-4 border-t border-gray-100 pt-3">
         <Button

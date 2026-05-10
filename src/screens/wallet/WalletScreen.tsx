@@ -8,14 +8,14 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowRight, Receipt } from 'lucide-react-native';
+import { ArrowRight, Receipt, WifiOff } from 'lucide-react-native';
 import { BalanceCard } from '@/components/wallet/BalanceCard';
 import { TransactionItem } from '@/components/wallet/TransactionItem';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { Colors } from '@/constants/colors';
 import { useWallet } from '@/hooks/useWallet';
-import { useAuthStore } from '@/stores/auth.store';
+import { useAuthStore, selectProfile, selectUser } from '@/stores/auth.store';
 import type { WalletStackScreenProps } from '@/types/navigation.types';
 
 type Props = WalletStackScreenProps<'WalletMain'>;
@@ -23,7 +23,8 @@ type Props = WalletStackScreenProps<'WalletMain'>;
 const RECENT_LIMIT = 5;
 
 export function WalletScreen({ navigation }: Props) {
-  const profile = useAuthStore((s) => s.profile);
+  const profile = useAuthStore(selectProfile);
+  const user = useAuthStore(selectUser);
   const isProvider = profile?.role === 'provider';
 
   const { wallet, transactions, isLoading, error, reload, clearError } = useWallet();
@@ -60,6 +61,21 @@ export function WalletScreen({ navigation }: Props) {
         <ErrorState
           title="Wallet unavailable"
           message={error}
+          onRetry={reload}
+        />
+      </SafeAreaView>
+    );
+  }
+
+  if (!isLoading && !wallet && !error && user && !profile) {
+    return (
+      <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+        <View className="px-4 py-3 border-b border-gray-100">
+          <Text className="text-xl font-bold text-gray-900">Wallet</Text>
+        </View>
+        <ErrorState
+          title="Session expired"
+          message="Your session could not be verified. Please sign out and sign in again."
           onRetry={reload}
         />
       </SafeAreaView>

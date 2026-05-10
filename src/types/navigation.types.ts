@@ -36,6 +36,11 @@ export type ClientTabParamList = {
   Profile: undefined;
 };
 
+export type ChatStackParamList = {
+  ChatList: undefined;
+  ChatRoom: { roomId: string; otherUserId: string; otherUserName: string };
+};
+
 export type ProviderServicesStackParamList = {
   MyServices: undefined;
   CreateService: undefined;
@@ -90,6 +95,9 @@ export type BookingsStackScreenProps<T extends keyof BookingsStackParamList> =
 
 export type WalletStackScreenProps<T extends keyof WalletStackParamList> =
   NativeStackScreenProps<WalletStackParamList, T>;
+
+export type ChatStackScreenProps<T extends keyof ChatStackParamList> =
+  NativeStackScreenProps<ChatStackParamList, T>;
 
 export type ProviderServicesStackScreenProps<T extends keyof ProviderServicesStackParamList> =
   NativeStackScreenProps<ProviderServicesStackParamList, T>;

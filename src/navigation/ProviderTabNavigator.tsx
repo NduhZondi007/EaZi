@@ -11,7 +11,7 @@ import {
 import { ProviderDashboardScreen } from '@/screens/provider/ProviderDashboardScreen';
 import { ProviderServicesStack } from './ProviderServicesStack';
 import { ProviderBookingsStack } from './ProviderBookingsStack';
-import { ChatListScreen } from '@/screens/chat/ChatListScreen';
+import { ChatStack } from './ChatStack';
 import { ProfileScreen } from '@/screens/profile/ProfileScreen';
 import type { ProviderTabParamList } from '@/types/navigation.types';
 
@@ -82,7 +82,7 @@ export function ProviderTabNavigator() {
       />
       <Tab.Screen
         name="Chat"
-        component={ChatListScreen}
+        component={ChatStack}
         options={{
           tabBarLabel: 'Chat',
           tabBarIcon: ({ focused }) => tabIcon(MessageSquare, focused),

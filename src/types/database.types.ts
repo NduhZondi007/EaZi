@@ -341,6 +341,8 @@ export interface Database {
           participant_b_id: string;
           is_admin_chat: boolean;
           booking_id: string | null;
+          created_at: string;
+          updated_at: string;
         };
         Insert: {
           participant_a_id: string;
@@ -358,6 +360,7 @@ export interface Database {
           sender_id: string;
           content: string;
           status: MessageStatus;
+          created_at: string;
         };
         Insert: {
           chat_room_id: string;

@@ -11,7 +11,7 @@ import {
 import { HomeStack } from './HomeStack';
 import { BookingsStack } from './BookingsStack';
 import { WalletStack } from './WalletStack';
-import { ChatListScreen } from '@/screens/chat/ChatListScreen';
+import { ChatStack } from './ChatStack';
 import { ProfileScreen } from '@/screens/profile/ProfileScreen';
 import type { ClientTabParamList } from '@/types/navigation.types';
 
@@ -74,7 +74,7 @@ export function ClientTabNavigator() {
       />
       <Tab.Screen
         name="Chat"
-        component={ChatListScreen}
+        component={ChatStack}
         options={{
           tabBarLabel: 'Chat',
           tabBarIcon: ({ focused }) => tabIcon(MessageSquare, focused),

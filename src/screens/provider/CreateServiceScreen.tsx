@@ -16,13 +16,13 @@ import { z } from 'zod';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
+  AtSign,
+  Camera,
   ChevronDown,
   ChevronLeft,
-  Facebook,
   Globe,
   ImagePlus,
-  Instagram,
-  Twitter,
+  Share2,
   X,
 } from 'lucide-react-native';
 import { Input } from '@/components/ui/Input';
@@ -393,7 +393,7 @@ export function CreateServiceScreen({ navigation }: Props) {
           name="twitter"
           render={({ field: { onChange, value } }) => (
             <SocialInput
-              icon={<Twitter size={16} color={Colors.gray400} />}
+              icon={<AtSign size={16} color={Colors.gray400} />}
               placeholder="twitter.com/yourhandle"
               value={value ?? ''}
               onChange={onChange}
@@ -405,7 +405,7 @@ export function CreateServiceScreen({ navigation }: Props) {
           name="facebook"
           render={({ field: { onChange, value } }) => (
             <SocialInput
-              icon={<Facebook size={16} color={Colors.gray400} />}
+              icon={<Share2 size={16} color={Colors.gray400} />}
               placeholder="facebook.com/yourpage"
               value={value ?? ''}
               onChange={onChange}
@@ -417,7 +417,7 @@ export function CreateServiceScreen({ navigation }: Props) {
           name="instagram"
           render={({ field: { onChange, value } }) => (
             <SocialInput
-              icon={<Instagram size={16} color={Colors.gray400} />}
+              icon={<Camera size={16} color={Colors.gray400} />}
               placeholder="instagram.com/yourprofile"
               value={value ?? ''}
               onChange={onChange}

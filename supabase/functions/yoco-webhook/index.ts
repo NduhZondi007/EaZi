@@ -5,6 +5,7 @@ import { createHmac } from 'https://deno.land/std@0.177.0/node/crypto.ts';
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
 interface YocoWebhookPayload {

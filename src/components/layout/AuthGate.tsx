@@ -6,6 +6,7 @@ import { useAuthStore, selectIsInitialized } from '@/stores/auth.store';
 import { RootNavigator } from '@/navigation/RootNavigator';
 import { LoadingScreen } from '@/components/layout/LoadingScreen';
 import { linking } from '@/navigation/linking';
+import { navigationRef } from '@/lib/navigationRef';
 
 export function AuthGate() {
   const { setSession, setUser, setProfile, setInitialized } = useAuthStore();
@@ -71,7 +72,7 @@ export function AuthGate() {
   }
 
   return (
-    <NavigationContainer linking={linking}>
+    <NavigationContainer linking={linking} ref={navigationRef}>
       <RootNavigator />
     </NavigationContainer>
   );

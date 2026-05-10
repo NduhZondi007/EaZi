@@ -73,6 +73,8 @@ export type RootStackParamList = {
   ClientTabs: undefined;
   ProviderTabs: undefined;
   AdminTabs: undefined;
+  MainTabs: undefined;
+  Notifications: undefined;
 };
 
 export type AuthStackScreenProps<T extends keyof AuthStackParamList> =

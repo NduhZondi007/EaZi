@@ -241,6 +241,7 @@ export interface Database {
           delivered: boolean;
           data: Record<string, unknown>;
           read_at: string | null;
+          created_at: string;
         };
         Insert: {
           user_id: string;

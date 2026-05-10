@@ -41,6 +41,7 @@ export const linking: LinkingOptions<RootStackParamList> = {
           Analytics: 'admin/analytics',
         },
       },
+      Notifications: 'notifications',
     },
   },
 };

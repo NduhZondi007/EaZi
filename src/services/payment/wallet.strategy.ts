@@ -1,3 +1,4 @@
+import { FunctionsHttpError } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import type {
   IPaymentStrategy,
@@ -51,7 +52,7 @@ export class WalletStrategy implements IPaymentStrategy {
     });
 
     if (error) {
-      return { success: false, error: error.message };
+      return { success: false, error: await extractFunctionError(error) };
     }
     if (!data?.success) {
       return { success: false, error: 'Wallet payment processing failed' };
@@ -75,9 +76,21 @@ export class WalletStrategy implements IPaymentStrategy {
     });
 
     if (error) {
-      return { success: false, error: error.message };
+      return { success: false, error: await extractFunctionError(error) };
     }
 
     return { success: true, refundId: data?.refund_id };
   }
+}
+
+async function extractFunctionError(err: unknown): Promise<string> {
+  if (err instanceof FunctionsHttpError) {
+    try {
+      const body = await err.context.json() as { error?: string };
+      if (body.error) return body.error;
+    } catch {
+      // response body not JSON — fall through
+    }
+  }
+  return err instanceof Error ? err.message : 'Unknown payment error';
 }

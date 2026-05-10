@@ -1,3 +1,4 @@
+import { FunctionsHttpError } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import type {
   IPaymentStrategy,
@@ -38,7 +39,7 @@ export class YocoCardStrategy implements IPaymentStrategy {
     });
 
     if (error) {
-      return { success: false, error: error.message };
+      return { success: false, error: await extractFunctionError(error) };
     }
     if (!data?.redirect_url) {
       return { success: false, error: 'No checkout URL returned from payment provider' };
@@ -65,7 +66,7 @@ export class YocoCardStrategy implements IPaymentStrategy {
     );
 
     if (error) {
-      return { success: false, error: error.message };
+      return { success: false, error: await extractFunctionError(error) };
     }
 
     return { success: true, refundId: data?.refund_id };
@@ -73,3 +74,15 @@ export class YocoCardStrategy implements IPaymentStrategy {
 }
 
 export const yocoCardStrategy = new YocoCardStrategy();
+
+async function extractFunctionError(err: unknown): Promise<string> {
+  if (err instanceof FunctionsHttpError) {
+    try {
+      const body = await err.context.json() as { error?: string };
+      if (body.error) return body.error;
+    } catch {
+      // response body not JSON — fall through to generic message
+    }
+  }
+  return err instanceof Error ? err.message : 'Unknown payment error';
+}

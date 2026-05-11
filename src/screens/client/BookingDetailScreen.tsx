@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -22,6 +22,7 @@ import {
 } from 'lucide-react-native';
 import { BookingStatusBadge } from '@/components/bookings/BookingStatusBadge';
 import { BookingTimeline } from '@/components/bookings/BookingTimeline';
+import { LeaveReviewModal } from '@/components/bookings/LeaveReviewModal';
 import { Button } from '@/components/ui/Button';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { Colors } from '@/constants/colors';
@@ -49,6 +50,7 @@ export function BookingDetailScreen({ route, navigation }: Props) {
   const isLoading = useBookingStore(selectIsBookingLoading);
   const error = useBookingStore(selectBookingError);
   const { loadBooking, cancelBooking, updateBookingRealtime } = useBookingStore();
+  const [reviewModalVisible, setReviewModalVisible] = useState(false);
 
   const load = useCallback(() => {
     loadBooking(bookingId);
@@ -254,14 +256,28 @@ export function BookingDetailScreen({ route, navigation }: Props) {
               <Button
                 label="Leave a Review"
                 variant="primary"
-                onPress={() => {
-                  /* Review flow in Phase 11 */
-                }}
+                onPress={() => setReviewModalVisible(true)}
               />
             )}
           </View>
         </View>
       </ScrollView>
+
+      {booking && (
+        <LeaveReviewModal
+          visible={reviewModalVisible}
+          bookingId={booking.id}
+          serviceId={booking.service_id}
+          serviceName={booking.service.business_name}
+          providerName={booking.provider.name}
+          providerImageUrl={booking.provider.profile_image_url}
+          onClose={() => setReviewModalVisible(false)}
+          onSubmitted={() => {
+            setReviewModalVisible(false);
+            load();
+          }}
+        />
+      )}
     </SafeAreaView>
   );
 }

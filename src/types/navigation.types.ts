@@ -25,6 +25,8 @@ export type WalletStackParamList = {
   WalletMain: undefined;
   TransactionHistory: undefined;
   TopUp: undefined;
+  SavedCards: undefined;
+  Withdrawal: undefined;
   WebView: { url: string; title: string };
 };
 

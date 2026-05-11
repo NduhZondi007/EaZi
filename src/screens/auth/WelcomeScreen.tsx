@@ -37,43 +37,45 @@ export function WelcomeScreen({ navigation }: Props) {
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
       <View className="flex-1 items-center justify-center px-6">
-        <Animated.View
-          style={{ opacity: logoOpacity, transform: [{ translateY: logoTranslateY }] }}
-          className="items-center mb-16"
-        >
-          <View className="w-24 h-24 rounded-3xl bg-[#111111] items-center justify-center mb-6">
-            <Text className="text-white text-4xl font-bold">E</Text>
-          </View>
-          <Text className="text-4xl font-bold text-[#111111] tracking-tight">EaZi</Text>
-          <Text className="text-base text-[#6B7280] mt-2 text-center">
-            Services, on demand.
-          </Text>
-        </Animated.View>
-
-        <Animated.View style={{ opacity: contentOpacity }} className="w-full gap-4">
-          <Button
-            label="Get Started"
-            onPress={() => navigation.navigate('SignUp')}
-          />
-
-          <Pressable
-            onPress={() => navigation.navigate('Login')}
-            className="h-12 items-center justify-center"
-            accessibilityRole="button"
-            accessibilityLabel="Already have an account"
+        <View className="w-full max-w-sm items-center">
+          <Animated.View
+            style={{ opacity: logoOpacity, transform: [{ translateY: logoTranslateY }] }}
+            className="items-center mb-16"
           >
-            <Text className="text-sm text-[#6B7280]">
-              Already have an account?{' '}
-              <Text className="text-[#111111] font-semibold">Log in</Text>
+            <View className="w-24 h-24 rounded-3xl bg-[#111111] items-center justify-center mb-6">
+              <Text className="text-white text-4xl font-bold">E</Text>
+            </View>
+            <Text className="text-4xl font-bold text-[#111111] tracking-tight">EaZi</Text>
+            <Text className="text-base text-[#6B7280] mt-2 text-center">
+              Services, on demand.
             </Text>
-          </Pressable>
-        </Animated.View>
-      </View>
+          </Animated.View>
 
-      <View className="pb-8 items-center">
-        <Text className="text-xs text-[#9CA3AF]">
-          By continuing, you agree to our Terms & Privacy Policy
-        </Text>
+          <Animated.View style={{ opacity: contentOpacity }} className="w-full gap-4">
+            <Button
+              label="Get Started"
+              onPress={() => navigation.navigate('SignUp')}
+            />
+
+            <Pressable
+              onPress={() => navigation.navigate('Login')}
+              className="h-12 items-center justify-center"
+              accessibilityRole="button"
+              accessibilityLabel="Already have an account"
+            >
+              <Text className="text-sm text-[#6B7280]">
+                Already have an account?{' '}
+                <Text className="text-[#111111] font-semibold">Log in</Text>
+              </Text>
+            </Pressable>
+          </Animated.View>
+
+          <Animated.View style={{ opacity: contentOpacity }} className="mt-8 items-center">
+            <Text className="text-xs text-[#9CA3AF] text-center">
+              By continuing, you agree to our Terms & Privacy Policy
+            </Text>
+          </Animated.View>
+        </View>
       </View>
     </SafeAreaView>
   );

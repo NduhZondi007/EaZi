@@ -1,31 +1,10 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { createHmac } from 'https://deno.land/std@0.177.0/node/crypto.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
-
-interface YocoWebhookPayload {
-  id: string;
-  type: string;
-  createdDate: string;
-  payload: {
-    id: string;
-    type: string;
-    status: string;
-    amount: number;
-    currency: string;
-    metadata?: {
-      booking_id?: string;
-      user_id?: string;
-      type?: string;
-    };
-    checkoutId?: string;
-  };
-}
 
 serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
@@ -35,189 +14,119 @@ serve(async (req: Request) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const webhookSecret = Deno.env.get('YOCO_WEBHOOK_SECRET')!;
-
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Verify webhook signature
-    const rawBody = await req.text();
-    const signature = req.headers.get('x-yoco-signature') ?? '';
+    const payload = await req.json();
 
-    if (webhookSecret) {
-      const expectedSig = createHmac('sha256', webhookSecret)
-        .update(rawBody)
-        .digest('hex');
+    // Yoco sends events like "payment.succeeded" or "charge.succeeded"
+    const eventType: string = payload?.type ?? '';
+    const isSuccess = eventType === 'payment.succeeded' || eventType === 'charge.succeeded';
 
-      if (signature !== expectedSig) {
-        return new Response(JSON.stringify({ error: 'Invalid signature' }), {
-          status: 401,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
+    if (!isSuccess) {
+      return new Response(JSON.stringify({ received: true }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
-    const event: YocoWebhookPayload = JSON.parse(rawBody);
-    const { type, payload } = event;
+    // checkout ID is in payload.payload.id or payload.payload.checkoutId
+    const checkoutId: string =
+      payload?.payload?.id ?? payload?.payload?.checkoutId ?? payload?.id ?? '';
 
-    if (type === 'payment.succeeded') {
-      const checkoutId = payload.checkoutId ?? payload.id;
-      const bookingId = payload.metadata?.booking_id;
-      const userId = payload.metadata?.user_id;
-      const paymentType = payload.metadata?.type ?? 'booking';
-      const amountZAR = payload.amount / 100;
+    if (!checkoutId) {
+      return new Response(JSON.stringify({ error: 'Missing checkout ID' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
-      // Find transaction by checkout_id in metadata
-      const { data: transaction } = await supabase
-        .from('transactions')
-        .select('id, wallet_id, user_id, booking_id')
-        .contains('metadata', { checkout_id: checkoutId })
+    // Find the pending transaction by checkout_id stored in metadata
+    const { data: transactions, error: txFindError } = await supabase
+      .from('transactions')
+      .select('*')
+      .eq('status', 'pending')
+      .filter('metadata->checkout_id', 'eq', checkoutId)
+      .limit(1);
+
+    if (txFindError || !transactions || transactions.length === 0) {
+      // Already processed or not found — idempotent 200
+      return new Response(JSON.stringify({ received: true }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const tx = transactions[0];
+    const { user_id, wallet_id, amount, type, booking_id } = tx;
+
+    // Mark transaction completed
+    await supabase
+      .from('transactions')
+      .update({
+        status: 'completed',
+        metadata: { ...tx.metadata, confirmed_at: new Date().toISOString() },
+      })
+      .eq('id', tx.id);
+
+    if (type === 'wallet_topup') {
+      const { data: wallet } = await supabase
+        .from('wallets')
+        .select('balance')
+        .eq('id', wallet_id)
         .single();
 
-      if (!transaction) {
-        return new Response(JSON.stringify({ error: 'Transaction not found' }), {
-          status: 404,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
+      if (wallet) {
+        await supabase
+          .from('wallets')
+          .update({ balance: wallet.balance + amount })
+          .eq('id', wallet_id);
       }
+    } else if (type === 'booking_payment' && booking_id) {
+      const { data: booking } = await supabase
+        .from('bookings')
+        .select('id, provider_id, amount')
+        .eq('id', booking_id)
+        .single();
 
-      // Update transaction to completed
-      await supabase
-        .from('transactions')
-        .update({ status: 'completed' })
-        .eq('id', transaction.id);
-
-      if (paymentType === 'booking' && bookingId) {
-        // Fetch booking details for provider credit
-        const { data: booking } = await supabase
-          .from('bookings')
-          .select('provider_id, amount')
-          .eq('id', bookingId)
-          .single();
-
-        // Confirm booking
+      if (booking) {
         await supabase
           .from('bookings')
-          .update({
-            status: 'confirmed',
-            payment_method: 'card',
-          })
-          .eq('id', bookingId);
+          .update({ status: 'confirmed', payment_method: 'card' })
+          .eq('id', booking_id);
 
-        // Credit provider pending earnings
-        if (booking) {
-          const { data: providerWallet } = await supabase
-            .from('wallets')
-            .select('id, pending_earnings')
-            .eq('user_id', booking.provider_id)
-            .single();
-
-          if (providerWallet) {
-            await supabase
-              .from('wallets')
-              .update({
-                pending_earnings: (providerWallet.pending_earnings ?? 0) + amountZAR,
-              })
-              .eq('id', providerWallet.id);
-          }
-
-          // Notify provider
-          await fetch(`${supabaseUrl}/functions/v1/send-push-notification`, {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${supabaseServiceKey}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              user_id: booking.provider_id,
-              title: 'New Confirmed Booking!',
-              body: `A booking of R${amountZAR.toFixed(2)} has been confirmed.`,
-              data: { type: 'booking', booking_id: bookingId },
-            }),
-          }).catch(() => {});
-        }
-
-        // Notify client
-        if (userId) {
-          await fetch(`${supabaseUrl}/functions/v1/send-push-notification`, {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${supabaseServiceKey}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              user_id: userId,
-              title: 'Payment Successful',
-              body: `Your booking payment of R${amountZAR.toFixed(2)} was successful.`,
-              data: { type: 'payment', booking_id: bookingId },
-            }),
-          }).catch(() => {});
-        }
-      } else if (paymentType === 'topup' && userId) {
-        // Top up wallet balance
-        const { data: wallet } = await supabase
+        // Credit provider pending_earnings
+        const { data: providerWallet } = await supabase
           .from('wallets')
-          .select('id, balance')
-          .eq('user_id', userId)
+          .select('id, pending_earnings')
+          .eq('user_id', booking.provider_id)
           .single();
 
-        if (wallet) {
+        if (providerWallet) {
           await supabase
             .from('wallets')
-            .update({ balance: (wallet.balance ?? 0) + amountZAR })
-            .eq('id', wallet.id);
+            .update({ pending_earnings: providerWallet.pending_earnings + booking.amount })
+            .eq('id', providerWallet.id);
         }
-
-        // Notify client
-        await fetch(`${supabaseUrl}/functions/v1/send-push-notification`, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${supabaseServiceKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            user_id: userId,
-            title: 'Wallet Topped Up',
-            body: `R${amountZAR.toFixed(2)} has been added to your EaZi wallet.`,
-            data: { type: 'topup' },
-          }),
-        }).catch(() => {});
-      }
-    } else if (type === 'payment.failed') {
-      const checkoutId = payload.checkoutId ?? payload.id;
-      const bookingId = payload.metadata?.booking_id;
-      const userId = payload.metadata?.user_id;
-
-      // Update transaction to failed
-      await supabase
-        .from('transactions')
-        .update({ status: 'failed' })
-        .contains('metadata', { checkout_id: checkoutId });
-
-      // Cancel booking if applicable
-      if (bookingId) {
-        await supabase
-          .from('bookings')
-          .update({ status: 'cancelled' })
-          .eq('id', bookingId);
-      }
-
-      // Notify user of failure
-      if (userId) {
-        await fetch(`${supabaseUrl}/functions/v1/send-push-notification`, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${supabaseServiceKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            user_id: userId,
-            title: 'Payment Failed',
-            body: 'Your payment could not be processed. Please try again.',
-            data: { type: 'payment_failed', booking_id: bookingId ?? null },
-          }),
-        }).catch(() => {});
       }
     }
+
+    // Notify user of confirmed payment
+    await fetch(`${supabaseUrl}/functions/v1/send-push-notification`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${supabaseServiceKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        user_id,
+        title: 'Payment Confirmed',
+        body:
+          type === 'wallet_topup'
+            ? `R${amount.toFixed(2)} has been added to your EaZi Wallet.`
+            : `Your booking payment of R${amount.toFixed(2)} was successful.`,
+        data: { type: 'payment', booking_id: booking_id ?? null },
+      }),
+    }).catch(() => {});
 
     return new Response(JSON.stringify({ received: true }), {
       status: 200,

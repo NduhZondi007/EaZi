@@ -4,7 +4,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
 interface CreatePaymentBody {
@@ -198,6 +197,8 @@ serve(async (req: Request) => {
       body: JSON.stringify({
         amount: amountInCents,
         currency,
+        successUrl: 'https://eazi.app/payment/success',
+        cancelUrl: 'https://eazi.app/payment/cancel',
         metadata: {
           booking_id: booking_id ?? '',
           user_id: user.id,

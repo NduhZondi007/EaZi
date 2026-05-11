@@ -13,10 +13,13 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { format } from 'date-fns';
-import { ChevronLeft, CreditCard, Shield, User, Users, X } from 'lucide-react-native';
+import { ChevronLeft, CreditCard, User, Users, X } from 'lucide-react-native';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { AddressAutocomplete } from '@/components/maps/AddressAutocomplete';
 import { Colors } from '@/constants/colors';
+import { locationService } from '@/services/location.service';
+import type { Coordinates } from '@/services/location.service';
 import { useBookingStore } from '@/stores/booking.store';
 import { useAuthStore } from '@/stores/auth.store';
 import type { BookingFor } from '@/types/database.types';
@@ -117,6 +120,8 @@ export function BookingModal({ visible, service, onClose, onSuccess }: Props) {
     recipientPhone: '',
   });
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
+  const [_addressCoords, setAddressCoords] = useState<Coordinates | undefined>();
+  const [isLocating, setIsLocating] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [datePickerMode, setDatePickerMode] = useState<'date' | 'time'>('date');
@@ -318,20 +323,44 @@ export function BookingModal({ visible, service, onClose, onSuccess }: Props) {
     </View>
   );
 
+  const handleUseCurrentLocation = useCallback(async () => {
+    setIsLocating(true);
+    try {
+      const granted = await locationService.requestPermission();
+      if (!granted) return;
+      const coords = await locationService.getCurrentPosition();
+      setAddressCoords(coords);
+      const addr = await locationService.reverseGeocode(coords);
+      setForm((f) => ({ ...f, address: addr }));
+      setErrors((e) => ({ ...e, address: undefined }));
+    } catch {
+      // permission denied — user can type manually
+    } finally {
+      setIsLocating(false);
+    }
+  }, []);
+
   const renderStep2 = () => (
     <View className="gap-4">
       <Text className="text-sm text-gray-500 leading-5">
         Where should the provider come? Enter the full address.
       </Text>
-      <Input
+      <AddressAutocomplete
         label="Service Address"
         value={form.address}
-        onChangeText={(text) => setForm((f) => ({ ...f, address: text }))}
-        placeholder="e.g. 12 Main Street, Sandton, Johannesburg"
+        onChangeText={(text) => {
+          setForm((f) => ({ ...f, address: text }));
+          if (errors.address) setErrors((e) => ({ ...e, address: undefined }));
+        }}
+        onSelectPlace={(addr, coords) => {
+          setForm((f) => ({ ...f, address: addr }));
+          setAddressCoords(coords);
+          setErrors((e) => ({ ...e, address: undefined }));
+        }}
+        onUseCurrentLocation={handleUseCurrentLocation}
+        isLoadingLocation={isLocating}
+        placeholder="e.g. 12 Main Street, Sandton"
         error={errors.address}
-        multiline
-        numberOfLines={2}
-        style={{ height: 72, textAlignVertical: 'top', paddingTop: 12 }}
       />
     </View>
   );

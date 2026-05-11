@@ -36,4 +36,5 @@ export interface CreateBookingInput {
   recipient_name?: string | null;
   recipient_phone?: string | null;
   estimated_duration?: number | null;
+  is_quick_booking?: boolean;
 }

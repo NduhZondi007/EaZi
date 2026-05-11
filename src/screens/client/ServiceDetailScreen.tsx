@@ -22,6 +22,7 @@ import {
   Star,
 } from 'lucide-react-native';
 import { BookingModal } from '@/components/bookings/BookingModal';
+import { QuickBookingSheet } from '@/components/bookings/QuickBookingSheet';
 import { Colors } from '@/constants/colors';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { serviceDiscoveryFacade } from '@/services/service-discovery.facade';
@@ -174,6 +175,7 @@ export function ServiceDetailScreen({ route, navigation }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [bookingModalVisible, setBookingModalVisible] = useState(false);
+  const [quickBookingVisible, setQuickBookingVisible] = useState(false);
 
   const loadDetail = useCallback(() => {
     setIsLoading(true);
@@ -192,12 +194,17 @@ export function ServiceDetailScreen({ route, navigation }: Props) {
     loadDetail();
   }, [loadDetail]);
 
-  const handleBookNow = useCallback(() => {
+  const handleSchedule = useCallback(() => {
     setBookingModalVisible(true);
+  }, []);
+
+  const handleBookNow = useCallback(() => {
+    setQuickBookingVisible(true);
   }, []);
 
   const handleBookingSuccess = useCallback((_bookingId: string) => {
     setBookingModalVisible(false);
+    setQuickBookingVisible(false);
   }, []);
 
   const handleChat = useCallback(() => {
@@ -429,9 +436,9 @@ export function ServiceDetailScreen({ route, navigation }: Props) {
             <MessageCircle size={20} color={Colors.primary} />
           </Pressable>
           <Pressable
-            onPress={handleBookNow}
+            onPress={handleSchedule}
             className="flex-1 h-11 rounded-xl bg-gray-100 items-center justify-center"
-            accessibilityLabel="Schedule"
+            accessibilityLabel="Schedule booking"
           >
             <View className="flex-row items-center gap-2">
               <Calendar size={16} color={Colors.primary} />
@@ -441,7 +448,7 @@ export function ServiceDetailScreen({ route, navigation }: Props) {
           <Pressable
             onPress={handleBookNow}
             className="flex-1 h-11 rounded-xl bg-[#111111] items-center justify-center"
-            accessibilityLabel="Book Now"
+            accessibilityLabel="Quick book now"
           >
             <Text className="text-sm font-semibold text-white">Book Now</Text>
           </Pressable>
@@ -453,6 +460,14 @@ export function ServiceDetailScreen({ route, navigation }: Props) {
           visible={bookingModalVisible}
           service={service}
           onClose={() => setBookingModalVisible(false)}
+          onSuccess={handleBookingSuccess}
+        />
+      )}
+      {service && (
+        <QuickBookingSheet
+          visible={quickBookingVisible}
+          service={service}
+          onClose={() => setQuickBookingVisible(false)}
           onSuccess={handleBookingSuccess}
         />
       )}

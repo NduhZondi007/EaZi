@@ -1,9 +1,16 @@
 -- =============================================================================
--- EaZi Platform — Apply all pending migrations (002 → 003 → 004)
+-- EaZi Platform — Legacy SQL Editor script (migrations 002 → 004)
 -- =============================================================================
--- Run this entire script once in the Supabase SQL Editor.
--- Every statement is idempotent (IF EXISTS / ON CONFLICT DO NOTHING), so it
--- is safe to re-run if anything was partially applied before.
+-- Migrations 002–004 were applied manually via the Supabase SQL Editor before
+-- the project was connected to the Supabase CLI.
+--
+-- Migration 005 onwards use `supabase db push` via the CLI.
+-- To sync the CLI migration history after a fresh clone run:
+--   supabase migration repair --status reverted 001
+--   supabase migration repair --status applied 002
+--   supabase migration repair --status applied 003
+--   supabase migration repair --status applied 004
+--   supabase db push
 -- =============================================================================
 
 

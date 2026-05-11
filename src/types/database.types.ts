@@ -318,6 +318,8 @@ export interface Database {
           assigned_to: string | null;
           resolution: string | null;
           messages: unknown[];
+          created_at: string;
+          updated_at: string;
         };
         Insert: {
           user_id: string;

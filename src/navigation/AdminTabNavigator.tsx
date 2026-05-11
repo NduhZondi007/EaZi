@@ -9,9 +9,9 @@ import {
   Users,
 } from 'lucide-react-native';
 import { AdminDashboardScreen } from '@/screens/admin/AdminDashboardScreen';
-import { UserListScreen } from '@/screens/admin/UserListScreen';
-import { VerificationQueueScreen } from '@/screens/admin/VerificationQueueScreen';
-import { QueriesListScreen } from '@/screens/admin/QueriesListScreen';
+import { AdminUsersStack } from './AdminUsersStack';
+import { AdminVerificationStack } from './AdminVerificationStack';
+import { AdminQueriesStack } from './AdminQueriesStack';
 import { AnalyticsScreen } from '@/screens/admin/AnalyticsScreen';
 import type { AdminTabParamList } from '@/types/navigation.types';
 
@@ -66,7 +66,7 @@ export function AdminTabNavigator() {
       />
       <Tab.Screen
         name="Users"
-        component={UserListScreen}
+        component={AdminUsersStack}
         options={{
           tabBarLabel: 'Users',
           tabBarIcon: ({ focused }) => tabIcon(Users, focused),
@@ -74,7 +74,7 @@ export function AdminTabNavigator() {
       />
       <Tab.Screen
         name="Verification"
-        component={VerificationQueueScreen}
+        component={AdminVerificationStack}
         options={{
           tabBarLabel: 'Verify',
           tabBarIcon: ({ focused }) => tabIcon(ShieldCheck, focused),
@@ -82,7 +82,7 @@ export function AdminTabNavigator() {
       />
       <Tab.Screen
         name="Queries"
-        component={QueriesListScreen}
+        component={AdminQueriesStack}
         options={{
           tabBarLabel: 'Queries',
           tabBarIcon: ({ focused }) => tabIcon(HelpCircle, focused),

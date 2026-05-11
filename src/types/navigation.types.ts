@@ -68,6 +68,21 @@ export type AdminTabParamList = {
   Analytics: undefined;
 };
 
+export type AdminUsersStackParamList = {
+  UserList: undefined;
+  UserDetail: { userId: string };
+};
+
+export type AdminVerificationStackParamList = {
+  VerificationQueue: undefined;
+  VerificationDetail: { providerId: string };
+};
+
+export type AdminQueriesStackParamList = {
+  QueriesList: undefined;
+  QueryDetail: { queryId: string };
+};
+
 export type RootStackParamList = {
   AuthStack: undefined;
   ClientTabs: undefined;
@@ -106,3 +121,12 @@ export type ProviderServicesStackScreenProps<T extends keyof ProviderServicesSta
 
 export type ProviderBookingsStackScreenProps<T extends keyof ProviderBookingsStackParamList> =
   NativeStackScreenProps<ProviderBookingsStackParamList, T>;
+
+export type AdminUsersStackScreenProps<T extends keyof AdminUsersStackParamList> =
+  NativeStackScreenProps<AdminUsersStackParamList, T>;
+
+export type AdminVerificationStackScreenProps<T extends keyof AdminVerificationStackParamList> =
+  NativeStackScreenProps<AdminVerificationStackParamList, T>;
+
+export type AdminQueriesStackScreenProps<T extends keyof AdminQueriesStackParamList> =
+  NativeStackScreenProps<AdminQueriesStackParamList, T>;

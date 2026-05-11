@@ -3,13 +3,13 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StatusBar,
   Text,
   TextInput,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -318,7 +318,7 @@ export function SignUpScreen({ navigation }: Props) {
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerClassName="gap-2 pb-1"
+            contentContainerStyle={{ gap: 8, paddingBottom: 4 }}
           >
             {SERVICE_TYPES.map((type) => (
               <Pressable
@@ -483,7 +483,7 @@ export function SignUpScreen({ navigation }: Props) {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <ScrollView
-          contentContainerClassName="flex-grow px-6 pb-8"
+          contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24, paddingBottom: 32 }}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >

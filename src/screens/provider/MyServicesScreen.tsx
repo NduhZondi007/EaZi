@@ -94,7 +94,7 @@ export function MyServicesScreen({ navigation }: Props) {
         refreshControl={
           <RefreshControl refreshing={isLoading} onRefresh={load} tintColor={Colors.primary} />
         }
-        contentContainerClassName="flex-grow"
+        contentContainerStyle={{ flexGrow: 1 }}
       >
         {isLoading && services.length === 0 ? (
           <View className="flex-1 items-center justify-center">

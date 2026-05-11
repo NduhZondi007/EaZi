@@ -11,11 +11,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronLeft, ExternalLink, RefreshCw } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 
+type WebViewNavEvent = { url: string };
+
 let WebView: React.ComponentType<{
   source: { uri: string };
   onLoadStart?: () => void;
   onLoadEnd?: () => void;
   onError?: (e: { nativeEvent: { description: string } }) => void;
+  onNavigationStateChange?: (e: WebViewNavEvent) => void;
   startInLoadingState?: boolean;
   style?: object;
   ref?: React.RefObject<{ reload: () => void }>;
@@ -45,6 +48,19 @@ export function WebViewScreen({ navigation, route }: WebViewScreenProps) {
   const openInBrowser = useCallback(() => {
     Linking.openURL(url).catch(() => null);
   }, [url]);
+
+  const handleNavigationStateChange = useCallback(
+    (e: WebViewNavEvent) => {
+      // Yoco redirects to these URLs after payment completes or is cancelled
+      if (
+        e.url.includes('eazi.app/payment/success') ||
+        e.url.includes('eazi.app/payment/cancel')
+      ) {
+        navigation.goBack();
+      }
+    },
+    [navigation],
+  );
 
   if (Platform.OS === 'web') {
     return (
@@ -137,6 +153,7 @@ export function WebViewScreen({ navigation, route }: WebViewScreenProps) {
               setIsLoading(false);
               setHasError(true);
             }}
+            onNavigationStateChange={handleNavigationStateChange}
             startInLoadingState={false}
             style={{ flex: 1 }}
           />

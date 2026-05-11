@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -8,6 +8,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import { ArrowRight, CreditCard, Receipt } from 'lucide-react-native';
 import { BalanceCard } from '@/components/wallet/BalanceCard';
 import { CardItem } from '@/components/wallet/CardItem';
@@ -32,6 +33,19 @@ export function WalletScreen({ navigation }: Props) {
 
   const { wallet, transactions, isLoading, error, reload, clearError } = useWallet();
   const [cards, setCards] = useState<CardRow[]>([]);
+
+  // Reload wallet balance every time this screen comes into focus
+  // (catches the return from TopUp → WebView payment flow)
+  const isMounted = useRef(false);
+  useFocusEffect(
+    useCallback(() => {
+      if (isMounted.current) {
+        reload();
+      } else {
+        isMounted.current = true;
+      }
+    }, [reload]),
+  );
 
   useEffect(() => {
     if (!profile?.id) return;

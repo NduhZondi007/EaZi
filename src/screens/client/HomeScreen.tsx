@@ -22,6 +22,7 @@ import { Colors } from '@/constants/colors';
 import { ServiceCard } from '@/components/services/ServiceCard';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
+import { SkeletonList } from '@/components/ui/Skeleton';
 import {
   selectFeatured,
   selectFeaturedError,
@@ -272,8 +273,8 @@ export function HomeScreen({ navigation }: Props) {
 
   const ListEmpty =
     isServicesLoading && services.length === 0 ? (
-      <View className="h-48 items-center justify-center">
-        <ActivityIndicator color={Colors.primary} />
+      <View className="px-2 pt-2">
+        <SkeletonList count={4} />
       </View>
     ) : servicesError ? (
       <ErrorState

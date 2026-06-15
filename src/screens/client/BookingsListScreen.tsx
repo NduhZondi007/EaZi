@@ -1,6 +1,5 @@
 import { useCallback, useEffect } from 'react';
 import {
-  ActivityIndicator,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -12,6 +11,7 @@ import { Calendar } from 'lucide-react-native';
 import { BookingCard } from '@/components/bookings/BookingCard';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
+import { SkeletonBookingList } from '@/components/ui/Skeleton';
 import { Colors } from '@/constants/colors';
 import {
   useBookingStore,
@@ -80,8 +80,8 @@ export function BookingsListScreen({ navigation }: Props) {
         <View className="px-4 py-4 border-b border-gray-100">
           <Text className="text-xl font-bold text-gray-900">My Bookings</Text>
         </View>
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color={Colors.primary} />
+        <View className="pt-4">
+          <SkeletonBookingList count={5} />
         </View>
       </SafeAreaView>
     );

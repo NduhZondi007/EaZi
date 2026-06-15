@@ -29,6 +29,7 @@
       "name": "EaZi Platform",
       "shortName": "EaZi",
       "description": "On-demand services marketplace for South Africa"
-    }
+    },
+    "plugins": []
   }
 }

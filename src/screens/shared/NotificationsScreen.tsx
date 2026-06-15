@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import {
   Bell,
@@ -54,10 +54,11 @@ const NotificationItem = React.memo(function NotificationItem({ item, onPress }:
   const timeAgo = formatDistanceToNow(parseISO(item.created_at), { addSuffix: true });
 
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={() => onPress(item)}
       className={`flex-row items-start px-4 py-3 gap-3 ${!item.read ? 'bg-green-50' : 'bg-white'}`}
-      activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityLabel={item.title}
     >
       <View className="w-10 h-10 rounded-full bg-gray-100 items-center justify-center mt-0.5 flex-shrink-0">
         {typeIcon(item.type)}
@@ -78,7 +79,7 @@ const NotificationItem = React.memo(function NotificationItem({ item, onPress }:
         </Text>
         <Text className="text-xs text-gray-400 mt-1">{timeAgo}</Text>
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 });
 
@@ -108,13 +109,25 @@ export function NotificationsScreen({ navigation }: Props) {
   return (
     <View className="flex-1 bg-white">
       <View className="flex-row items-center justify-between px-4 pt-12 pb-3 border-b border-gray-100">
-        <TouchableOpacity onPress={() => navigation.goBack()} className="p-1" hitSlop={8}>
+        <Pressable
+          onPress={() => navigation.goBack()}
+          className="p-1"
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
+        >
           <ChevronLeft size={24} color="#111111" />
-        </TouchableOpacity>
+        </Pressable>
         <Text className="text-lg font-semibold text-gray-900">Notifications</Text>
-        <TouchableOpacity onPress={handleMarkAllRead} className="p-1" hitSlop={8}>
+        <Pressable
+          onPress={handleMarkAllRead}
+          className="p-1"
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="Mark all as read"
+        >
           <CheckCheck size={20} color="#3ECF8E" />
-        </TouchableOpacity>
+        </Pressable>
       </View>
 
       <FlashList

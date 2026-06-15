@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect } from 'react';
 import {
-  ActivityIndicator,
   Alert,
   Pressable,
   RefreshControl,
@@ -13,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { Briefcase, Edit3, Plus, Star, Trash2, Wrench } from 'lucide-react-native';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { SkeletonServiceList } from '@/components/ui/Skeleton';
 import { Colors } from '@/constants/colors';
 import {
   useProviderStore,
@@ -97,8 +97,8 @@ export function MyServicesScreen({ navigation }: Props) {
         contentContainerStyle={{ flexGrow: 1 }}
       >
         {isLoading && services.length === 0 ? (
-          <View className="flex-1 items-center justify-center">
-            <ActivityIndicator size="large" color={Colors.primary} />
+          <View className="pt-4">
+            <SkeletonServiceList count={4} />
           </View>
         ) : services.length === 0 ? (
           <View className="flex-1 items-center justify-center px-6">

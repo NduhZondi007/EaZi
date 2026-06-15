@@ -12,7 +12,7 @@ import { HomeStack } from './HomeStack';
 import { BookingsStack } from './BookingsStack';
 import { WalletStack } from './WalletStack';
 import { ChatStack } from './ChatStack';
-import { ProfileScreen } from '@/screens/profile/ProfileScreen';
+import { ProfileStack } from './ProfileStack';
 import type { ClientTabParamList } from '@/types/navigation.types';
 
 const Tab = createBottomTabNavigator<ClientTabParamList>();
@@ -90,7 +90,7 @@ export function ClientTabNavigator() {
       />
       <Tab.Screen
         name="Profile"
-        component={ProfileScreen}
+        component={ProfileStack}
         options={{
           tabBarLabel: 'Profile',
           tabBarIcon: ({ focused }) => tabIcon(User, focused),

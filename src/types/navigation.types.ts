@@ -85,6 +85,14 @@ export type AdminQueriesStackParamList = {
   QueryDetail: { queryId: string };
 };
 
+export type ProfileStackParamList = {
+  ProfileMain: undefined;
+  EditProfile: undefined;
+  Settings: undefined;
+  Support: undefined;
+  SupportDetail: { queryId: string };
+};
+
 export type RootStackParamList = {
   AuthStack: undefined;
   ClientTabs: undefined;
@@ -132,3 +140,6 @@ export type AdminVerificationStackScreenProps<T extends keyof AdminVerificationS
 
 export type AdminQueriesStackScreenProps<T extends keyof AdminQueriesStackParamList> =
   NativeStackScreenProps<AdminQueriesStackParamList, T>;
+
+export type ProfileStackScreenProps<T extends keyof ProfileStackParamList> =
+  NativeStackScreenProps<ProfileStackParamList, T>;

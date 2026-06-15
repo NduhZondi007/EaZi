@@ -12,7 +12,7 @@ import { ProviderDashboardScreen } from '@/screens/provider/ProviderDashboardScr
 import { ProviderServicesStack } from './ProviderServicesStack';
 import { ProviderBookingsStack } from './ProviderBookingsStack';
 import { ChatStack } from './ChatStack';
-import { ProfileScreen } from '@/screens/profile/ProfileScreen';
+import { ProfileStack } from './ProfileStack';
 import type { ProviderTabParamList } from '@/types/navigation.types';
 
 const Tab = createBottomTabNavigator<ProviderTabParamList>();
@@ -90,7 +90,7 @@ export function ProviderTabNavigator() {
       />
       <Tab.Screen
         name="Profile"
-        component={ProfileScreen}
+        component={ProfileStack}
         options={{
           tabBarLabel: 'Profile',
           tabBarIcon: ({ focused }) => tabIcon(User, focused),
